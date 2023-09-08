@@ -59,3 +59,14 @@ def test_query(fix_db):
     assert res[0].type == "C"
     assert res[1].date == datetime(2023, 12, 31)
     assert res[1].type == "R"
+
+
+def test_load(fix_db):
+    """Tests for `load()` function."""
+
+    # old content will persist
+    fix_db.load("resources/test-1.csv")
+
+    res = fix_db.query()
+    assert len(res) == 8
+    assert res[4].date == datetime(2023, 12, 12)

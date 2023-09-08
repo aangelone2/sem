@@ -8,6 +8,7 @@ CRUDHandler
 
 
 from datetime import datetime
+import csv
 
 from typing import List
 from sqlalchemy import create_engine
@@ -35,9 +36,10 @@ class CRUDHandler:
 
     add(expense_add)
         Add expense to the DB.
-
     query(datetime | None, datetime | None) -> List[expense]
         Return expenses within time period.
+    load(str)
+        Append the contents of a CSV file to the database.
     """
 
     def __init__(self, path: str, new: bool = True):
@@ -55,8 +57,9 @@ class CRUDHandler:
         cstr = "sqlite+pysqlite:///"
         self.db = Session(bind=create_engine(cstr + path))
 
-        # Applying existing schema
+        # Resetting schema
         if new:
+            Base.metadata.drop_all(self.db.get_bind())
             Base.metadata.create_all(self.db.get_bind())
 
     def add(self, data: ExpenseAdd):
@@ -106,3 +109,30 @@ class CRUDHandler:
             .where(Expense.date.between(start, end))
             .order_by(Expense.date)
         ).all()
+
+    def load(self, filename: str):
+        """Append the contents of a CSV file to the database.
+
+        Parameters
+        -----------------------
+        filename : str
+            Filename of the input CSV file
+        """
+        with open(
+            filename, "r", newline="", encoding="utf-8"
+        ) as csvfile:
+            reader = csv.reader(csvfile, quotechar='"')
+
+            for row in reader:
+                record = Expense(
+                    id=row[0],
+                    date=datetime.strptime(row[1], "%Y-%m-%d"),
+                    type=row[2],
+                    amount=row[3],
+                    justification=row[4],
+                )
+
+                self.db.add(record)
+
+            # Committing only at the end for speed
+            self.db.commit()
