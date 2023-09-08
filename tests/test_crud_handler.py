@@ -45,5 +45,17 @@ def fix_db():
 def test_query(fix_db):
     """Tests for `query()` function."""
 
-    res1 = fix_db.query()
-    assert len(res1) == 4
+    # should retrieve all expenses
+    res = fix_db.query()
+    assert len(res) == 4
+    assert res[0].date == datetime(2023, 11, 15)
+
+    # only the 2 most recent expenses
+    res = fix_db.query(
+        datetime(2023, 12, 2), datetime(2023, 12, 31)
+    )
+    assert len(res) == 2
+    assert res[0].date == datetime(2023, 12, 15)
+    assert res[0].type == "C"
+    assert res[1].date == datetime(2023, 12, 31)
+    assert res[1].type == "R"
