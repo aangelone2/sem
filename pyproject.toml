@@ -1,0 +1,25 @@
+[tool.poetry]
+name = "sem-cli"
+version = "0.1.0"
+description = "Command-line Simple expense manager"
+authors = ["aangelone2 <adriano.angelone.work@gmail.com>"]
+license = "GPL v3"
+readme = "README.md"
+packages = []
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[tool.poetry.group.dev.dependencies]
+black = "^23.7.0"
+pylint = "^2.17.5"
+pydocstyle = "^6.3.0"
+
+[tool.poetry.group.doc.dependencies]
+mkdocs = "^1.4.2"
+mkdocstrings = {extras = ["python"], version = "^0.20"}
+mkdocs-material = "^9.1.19"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
