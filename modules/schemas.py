@@ -32,11 +32,6 @@ class expense_base(BaseModel):
     amount: float
     justification: str
 
-    class Config:
-        """Required for SQLAlchemy models."""
-
-        orm_mode = True
-
 
 class expense_add(expense_base):
     """Derived expense class for insertion operations."""
