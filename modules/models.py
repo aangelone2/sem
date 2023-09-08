@@ -2,7 +2,9 @@
 
 Classes
 -----------------------
-Expense
+base
+    Inherits DeclarativeBase, base class for mapped objects.
+expense
     Class modeling database entry.
 """
 
@@ -43,3 +45,15 @@ class expense(base):
     type: Mapped[str]
     amount: Mapped[float]
     justification: Mapped[str]
+
+    def __repr__(self) -> str:
+        """Dunder representation method."""
+        return (
+            f"expense("
+            f"id={self.id!r}, "
+            f"date={self.date!r}, "
+            f"type={self.type!r}, "
+            f"amount={self.amount!r}, "
+            f"justification={self.justification!r}"
+            f")"
+        )
