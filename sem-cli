@@ -1,12 +1,2 @@
 #!/bin/bash
-
-if [[ $# != 2 ]]
-then
-  exit 1
-fi
-
-subcommand="$1"
-shift 1
-arguments="$@"
-
-poetry run python3 -m modules.main "$subcommand" "$arguments"
+poetry run python3 -m modules.main "$@"
