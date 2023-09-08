@@ -11,7 +11,7 @@ class ExpenseRead
 """
 
 
-from datetime import datetime
+from datetime import date
 from pydantic import BaseModel
 
 
@@ -20,7 +20,7 @@ class ExpenseBase(BaseModel):
 
     Attributes
     -----------------------
-    date : datetime
+    date : date
         Date of the expense
     type : str
         Char representing the expense type
@@ -30,7 +30,7 @@ class ExpenseBase(BaseModel):
         Justification for the expense
     """
 
-    date: datetime
+    date: date
     # FIXME impose length 1
     type: str
     amount: float

@@ -7,7 +7,7 @@ CRUDHandler
 """
 
 
-from datetime import datetime
+from datetime import date
 import csv
 
 from typing import List
@@ -15,6 +15,7 @@ from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from modules.common import str2date
 from modules.models import Base
 from modules.models import Expense
 from modules.schemas import ExpenseAdd
@@ -36,7 +37,7 @@ class CRUDHandler:
 
     add(expense_add)
         Add expense to the DB.
-    query(datetime | None, datetime | None) -> List[expense]
+    query(date | None, date | None) -> List[expense]
         Return expenses within time period.
     load(str)
         Append the contents of a CSV file to the database.
@@ -83,14 +84,14 @@ class CRUDHandler:
 
     def query(
         self,
-        start: datetime | None = None,
-        end: datetime | None = None,
+        start: date | None = None,
+        end: date | None = None,
     ) -> List[ExpenseRead]:
         """Return expenses in time window.
 
         Parameters
         -----------------------
-        start, end : datetime | None, default=None
+        start, end : date | None, default=None
             Starting and ending dates, ignored if either is None
 
         Returns
@@ -126,7 +127,7 @@ class CRUDHandler:
             for row in reader:
                 record = Expense(
                     id=row[0],
-                    date=datetime.strptime(row[1], "%Y-%m-%d"),
+                    date=str2date(row[1]),
                     type=row[2],
                     amount=row[3],
                     justification=row[4],

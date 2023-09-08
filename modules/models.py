@@ -9,7 +9,7 @@ Expense
 """
 
 
-from datetime import datetime
+from datetime import date
 
 from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import Mapped
@@ -27,7 +27,7 @@ class Expense(Base):
     -----------------------
     id : int
         ID of the expense, primary key field
-    date : datetime
+    date : date
         Date of the expense
     type : str
         Char representing the expense type
@@ -40,7 +40,7 @@ class Expense(Base):
     __tablename__ = "expenses"
 
     id: Mapped[int] = mapped_column(primary_key=True)
-    date: Mapped[datetime]
+    date: Mapped[date]
     # FIXME impose length 1
     type: Mapped[str]
     amount: Mapped[float]
