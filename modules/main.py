@@ -85,23 +85,52 @@ def request_query(path: str):
     console.print(table)
 
 
+def request_load(path: str, csv_path: str):
+    """Request load CRUD interface.
+
+    Parameters
+    -----------------------
+    path : str
+        DB path
+    csv_path : str
+        CSV file path
+    """
+    ch = CRUDHandler(path, new=False)
+
+    console.rule(
+        f"[bold green]Requested load from {csv_path}[/bold green]"
+    )
+
+    ch.load(csv_path)
+
+    console.rule(
+        f"[bold green]Loading completed in {path}[/bold green]"
+    )
+
+
 def main():
     """Implement main entrypoint."""
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command")
 
     create_parser = subparsers.add_parser("create")
-    create_parser.add_argument("create_path", type=str)
+    create_parser.add_argument("path", type=str)
 
-    create_parser = subparsers.add_parser("query")
-    create_parser.add_argument("query_path", type=str)
+    query_parser = subparsers.add_parser("query")
+    query_parser.add_argument("path", type=str)
+
+    load_parser = subparsers.add_parser("load")
+    load_parser.add_argument("path", type=str)
+    load_parser.add_argument("-l", "--load", type=str)
 
     args = parser.parse_args()
 
     if args.command == "create":
-        create_db(args.create_path)
+        create_db(args.path)
     elif args.command == "query":
-        request_query(args.query_path)
+        request_query(args.path)
+    elif args.command == "load":
+        request_load(args.path, args.load)
 
 
 if __name__ == "__main__":
