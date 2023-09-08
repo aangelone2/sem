@@ -2,9 +2,9 @@
 
 Classes
 -----------------------
-base
+Base
     Inherits DeclarativeBase, base class for mapped objects.
-expense
+Expense
     Class modeling database entry.
 """
 
@@ -16,11 +16,11 @@ from sqlalchemy.orm import Mapped
 from sqlalchemy.orm import mapped_column
 
 
-class base(DeclarativeBase):
+class Base(DeclarativeBase):
     """Inherits DeclarativeBase, base class for mapped objects."""
 
 
-class expense(base):
+class Expense(Base):
     """Expense class.
 
     Attributes
@@ -30,9 +30,9 @@ class expense(base):
     date : datetime
         Date of the expense
     type : str
-        Char representing the type of the expense
+        Char representing the expense type
     amount : float
-        Amount (positive or negative) of the expense
+        Amount of the expense
     justification : str
         Justification for the expense
     """

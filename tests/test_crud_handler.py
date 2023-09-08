@@ -8,8 +8,8 @@ from datetime import datetime
 
 import pytest
 
-from modules.schemas import expense_add
-from modules.crud import crud_handler
+from modules.schemas import ExpenseAdd
+from modules.crud import CRUDHandler
 
 
 @pytest.fixture
@@ -17,7 +17,7 @@ def fix_db():
     """DB fixture."""
 
     # in-memory DB for testing, easier cleanup
-    ch = crud_handler("")
+    ch = CRUDHandler("")
 
     # adding test data
     lyear = [2023, 2023, 2023, 2023]
@@ -31,7 +31,7 @@ def fix_db():
         lyear, lmonth, lday, ltype, lamount, ljustification
     ):
         ch.add(
-            expense_add(
+            ExpenseAdd(
                 date=datetime(y, m, d),
                 type=t,
                 amount=a,

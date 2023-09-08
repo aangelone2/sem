@@ -2,8 +2,12 @@
 
 Classes
 -----------------------
-expense_base
+ExpenseBase
     Base expense class.
+ExpenseAdd
+    Derived expense class for insertion operations.
+class ExpenseRead
+    Derived expense class for query operations.
 """
 
 
@@ -11,7 +15,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class expense_base(BaseModel):
+class ExpenseBase(BaseModel):
     """Base expense class.
 
     Attributes
@@ -19,9 +23,9 @@ class expense_base(BaseModel):
     date : datetime
         Date of the expense
     type : str
-        Char representing the type of the expense
+        Char representing the expense type
     amount : float
-        Amount (positive or negative) of the expense
+        Amount of the expense
     justification : str
         Justification for the expense
     """
@@ -33,12 +37,12 @@ class expense_base(BaseModel):
     justification: str
 
 
-class expense_add(expense_base):
-    """Derived expense class for insertion operations."""
+class ExpenseAdd(ExpenseBase):
+    """Expense for insertion operations."""
 
 
-class expense_query(expense_base):
-    """Derived expense class for query operations.
+class ExpenseRead(ExpenseBase):
+    """Expense for selection operations.
 
     Attributes
     -----------------------

@@ -2,8 +2,8 @@
 
 Class
 -----------------------
-crud_handler
-    Class mediating CRUD operations on the DB.
+CRUDHandler
+    Class mediating CRUD operations.
 """
 
 
@@ -14,14 +14,14 @@ from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from modules.models import base
-from modules.models import expense
-from modules.schemas import expense_add
-from modules.schemas import expense_query
+from modules.models import Base
+from modules.models import Expense
+from modules.schemas import ExpenseAdd
+from modules.schemas import ExpenseRead
 
 
-class crud_handler:
-    """Class mediating CRUD operations on the DB.
+class CRUDHandler:
+    """Class mediating CRUD operations.
 
     Attributes
     -----------------------
@@ -48,20 +48,18 @@ class crud_handler:
         path : str
             Path the DB should be located in
         new : bool, default=True
-            If True, DB is created (or overwritten)
+            If True, DB created/overwritten
         """
         self.db = None
 
-        engine_str = "sqlite+pysqlite:///"
-        self.db = Session(
-            bind=create_engine(engine_str + path)
-        )
+        cstr = "sqlite+pysqlite:///"
+        self.db = Session(bind=create_engine(cstr + path))
 
-        # Applying existing schema if requested
+        # Applying existing schema
         if new:
-            base.metadata.create_all(self.db.get_bind())
+            Base.metadata.create_all(self.db.get_bind())
 
-    def add(self, data: expense_add):
+    def add(self, data: ExpenseAdd):
         """Add expense to the DB.
 
         Parameters
@@ -70,7 +68,7 @@ class crud_handler:
             Expense data.
         """
         # Primary key added automatically
-        new_expense = expense(
+        new_expense = Expense(
             date=data.date,
             type=data.type,
             amount=data.amount,
@@ -84,8 +82,8 @@ class crud_handler:
         self,
         start: datetime | None = None,
         end: datetime | None = None,
-    ) -> List[expense_query]:
-        """Return expenses within time period.
+    ) -> List[ExpenseRead]:
+        """Return expenses in time window.
 
         Parameters
         -----------------------
@@ -94,17 +92,17 @@ class crud_handler:
 
         Returns
         -----------------------
-        List[expense_query]
+        List[ExpenseRead]
             List of expenses matching the criteria, all expenses if
             either of the dates is None
         """
         if (start is None) or (end is None):
             return self.db.scalars(
-                select(expense).order_by(expense.date)
+                select(Expense).order_by(Expense.date)
             ).all()
 
         return self.db.scalars(
-            select(expense)
-            .where(expense.date.between(start, end))
-            .order_by(expense.date)
+            select(Expense)
+            .where(Expense.date.between(start, end))
+            .order_by(Expense.date)
         ).all()
