@@ -9,6 +9,8 @@ packages = []
 
 [tool.poetry.dependencies]
 python = "^3.11"
+SQLAlchemy = "^2.0.20"
+rich = "^13.5.2"
 
 [tool.poetry.group.dev.dependencies]
 black = "^23.7.0"

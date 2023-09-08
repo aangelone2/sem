@@ -24,6 +24,6 @@ def init_session(path: str) -> Session:
     Session
         The initialized Session
     """
-    engine_str = "sqlite://"
+    engine_str = "sqlite:///"
 
     return Session(bind=create_engine(engine_str + path))
