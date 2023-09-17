@@ -7,6 +7,10 @@ create_db()
     Create/overwrite DB with appropriate schema.
 request_query()
     Request query to CRUD interface, prompts for dates.
+request_load()
+    Request load CRUD interface.
+request_add()
+    Add expense(s) to the DB.
 
 main()
     Implement main entrypoint.
@@ -18,7 +22,7 @@ main()
 # included in all copies or substantial portions of the
 # Software.
 #
-# This file is part of sem.
+# This file is part of sem-cli.
 #
 # This file may be used under the terms of the GNU General
 # Public License version 3.0 as published by the Free Software
@@ -43,6 +47,7 @@ from rich.console import Console
 from rich.table import Table
 
 from modules.common import str2date
+from modules.schemas import ExpenseAdd
 from modules.crud import CRUDHandler
 
 
@@ -87,7 +92,7 @@ def request_query(path: str):
     )
     end = str2date(end)
 
-    print("")
+    console.print("")
 
     res = ch.query(start, end)
 
@@ -133,6 +138,51 @@ def request_load(path: str, csv_path: str):
     )
 
 
+def request_add(path: str):
+    """Add expense(s) to the DB.
+
+    Parameters
+    -----------------------
+    path : str
+        DB path
+    """
+
+    ch = CRUDHandler(path, new=False)
+
+    console.rule(
+        f"[bold green]Adding expenses at {path}[/bold green]"
+    )
+
+    date = ""
+    typ = ""
+    amount = ""
+    justification = ""
+
+    while True:
+        date = console.input("[cyan]Date          :: [/cyan]")
+
+        typ = console.input("[cyan]Type          :: [/cyan]")
+
+        amount = console.input(
+            "[cyan]Amount        :: [/cyan]"
+        )
+
+        justification = console.input(
+            "[cyan]Justification :: [/cyan]"
+        )
+
+        ch.add(
+            ExpenseAdd(
+                date=date,
+                type=typ,
+                amount=amount,
+                justification=justification,
+            )
+        )
+
+        console.print("")
+
+
 def main():
     """Implement main entrypoint."""
     parser = argparse.ArgumentParser()
@@ -148,6 +198,9 @@ def main():
     load_parser.add_argument("path", type=str)
     load_parser.add_argument("-l", "--load", type=str)
 
+    add_parser = subparsers.add_parser("add")
+    add_parser.add_argument("path", type=str)
+
     args = parser.parse_args()
 
     if args.command == "create":
@@ -156,6 +209,8 @@ def main():
         request_query(args.path)
     elif args.command == "load":
         request_load(args.path, args.load)
+    elif args.command == "add":
+        request_add(args.path)
 
 
 if __name__ == "__main__":
