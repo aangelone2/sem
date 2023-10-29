@@ -158,8 +158,9 @@ class CRUDHandler:
         """
         if (start is None) or (end is None):
             return self.db.execute(
-                select(Expense.type,
-                       func.sum(Expense.amount)).group_by(Expense.type).order_by(Expense.type)
+                select(Expense.type, func.sum(Expense.amount))
+                .group_by(Expense.type)
+                .order_by(Expense.type)
             ).all()
 
         return self.db.execute(

@@ -163,7 +163,6 @@ def request_add(path: str):
     path : str
         DB path
     """
-
     ch = CRUDHandler(path, new=False)
 
     console.rule(
