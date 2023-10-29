@@ -6,7 +6,7 @@ ExpenseBase
     Base expense class.
 ExpenseAdd
     Derived expense class for insertion operations.
-class ExpenseRead
+ExpenseRead
     Derived expense class for query operations.
 """
 

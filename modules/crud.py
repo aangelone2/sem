@@ -60,9 +60,9 @@ class CRUDHandler:
     __init__(str, bool)
         Construct class instance.
 
-    add(expense_add)
+    add(ExpenseAdd)
         Add expense to the DB.
-    query(date | None, date | None) -> List[expense]
+    query(date | None, date | None) -> List[ExpenseRead]
         Return expenses within time period.
     load(str)
         Append the contents of a CSV file to the database.
@@ -93,7 +93,7 @@ class CRUDHandler:
 
         Parameters
         -----------------------
-        data : expense_add
+        data : ExpenseAdd
             Expense data.
         """
         # Primary key added automatically
