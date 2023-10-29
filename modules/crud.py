@@ -38,6 +38,7 @@ import csv
 from typing import List
 from sqlalchemy import create_engine
 from sqlalchemy import select
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from modules.common import str2date
@@ -64,6 +65,8 @@ class CRUDHandler:
         Add expense to the DB.
     query(date | None, date | None) -> List[ExpenseRead]
         Return expenses within time period.
+    summarize(date | None, date | None) -> List[Tuple[str, float]]
+        Return summary of expenses grouped by type within period.
     load(str)
         Append the contents of a CSV file to the database.
     """
@@ -134,6 +137,36 @@ class CRUDHandler:
             select(Expense)
             .where(Expense.date.between(start, end))
             .order_by(Expense.date)
+        ).all()
+
+    def summarize(
+        self,
+        start: date | None = None,
+        end: date | None = None,
+    ):
+        """Return summary of expenses grouped by type within period.
+
+        Parameters
+        -----------------------
+        start, end : date | None, default=None
+            Starting and ending dates, ignored if either is None
+
+        Returns
+        -----------------------
+        List[Tuple[str, float]]
+            List of Tuples, each containing expense type and summed amounts
+        """
+        if (start is None) or (end is None):
+            return self.db.execute(
+                select(Expense.type,
+                       func.sum(Expense.amount)).group_by(Expense.type).order_by(Expense.type)
+            ).all()
+
+        return self.db.execute(
+            select(Expense.type, func.sum(Expense.amount))
+            .where(Expense.date.between(start, end))
+            .group_by(Expense.type)
+            .order_by(Expense.type)
         ).all()
 
     def load(self, filename: str):

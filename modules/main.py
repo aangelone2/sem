@@ -6,7 +6,7 @@ Functions
 create_db()
     Create/overwrite DB with appropriate schema.
 request_query()
-    Request query to CRUD interface, prompts for dates.
+    Request query + summary to CRUD interface.
 request_load()
     Request load CRUD interface.
 request_add()
@@ -69,7 +69,7 @@ def create_db(path: str):
 
 
 def request_query(path: str):
-    """Request query to CRUD interface, prompts for dates.
+    """Request query + summary to CRUD interface.
 
     Parameters
     -----------------------
@@ -85,12 +85,16 @@ def request_query(path: str):
     start = console.input(
         "[cyan]Starting date (included) :: [/cyan]"
     )
-    start = str2date(start)
+    start = str2date(start) if start != "" else None
 
-    end = console.input(
-        "[cyan]Ending date (included)   :: [/cyan]"
-    )
-    end = str2date(end)
+    # Skipping 2nd date if skipped 1st
+    if start is not None:
+        end = console.input(
+            "[cyan]Ending date (included)   :: [/cyan]"
+        )
+        end = str2date(end) if end != "" else None
+    else:
+        end = None
 
     console.print("")
 
@@ -111,6 +115,19 @@ def request_query(path: str):
             str(record.amount),
             record.justification,
         )
+
+    console.print(table)
+
+    console.print("")
+
+    res = ch.summarize(start, end)
+
+    table = Table()
+    table.add_column("Type")
+    table.add_column("Amount")
+
+    for record in res:
+        table.add_row(str(record[0]), str(record[1]))
 
     console.print(table)
 
