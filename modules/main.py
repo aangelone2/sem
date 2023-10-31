@@ -96,9 +96,14 @@ def request_query(path: str):
     else:
         end = None
 
+    types = console.input(
+        "[cyan]Types :: [/cyan]"
+    )
+    types = types.split() if types != "" else None
+
     console.print("")
 
-    res = ch.query(start, end)
+    res = ch.query(start, end, types)
 
     table = Table()
     table.add_column("ID")
@@ -120,7 +125,7 @@ def request_query(path: str):
 
     console.print("")
 
-    res = ch.summarize(start, end)
+    res = ch.summarize(start, end, types)
 
     table = Table()
     table.add_column("Type")

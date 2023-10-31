@@ -36,6 +36,7 @@ from datetime import date
 import csv
 
 from typing import List
+from typing import Optional
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
@@ -61,13 +62,13 @@ class CRUDHandler:
     __init__(str, bool)
         Construct class instance.
 
-    add(ExpenseAdd)
+    add()
         Add expense to the DB.
-    query(date | None, date | None) -> List[ExpenseRead]
+    query()
         Return expenses within time period.
-    summarize(date | None, date | None) -> List[Tuple[str, float]]
+    summarize()
         Return summary of expenses grouped by type within period.
-    load(str)
+    load()
         Append the contents of a CSV file to the database.
     """
 
@@ -112,44 +113,56 @@ class CRUDHandler:
 
     def query(
         self,
-        start: date | None = None,
-        end: date | None = None,
+        start: Optional[date] = None,
+        end: Optional[date] = None,
+        types: Optional[List[str]] = None,
     ) -> List[ExpenseRead]:
         """Return expenses in time window.
 
         Parameters
         -----------------------
-        start, end : date | None, default=None
-            Starting and ending dates, ignored if either is None
+        start, end : Optional[date], default=None
+            Starting and ending dates, any date if either is None
+        types : Optional[List[str]], default=None
+            Types to be selected in the result, all if None
 
         Returns
         -----------------------
         List[ExpenseRead]
-            List of expenses matching the criteria, all expenses if
-            either of the dates is None
+            List of expenses matching the criteria
         """
+
         if (start is None) or (end is None):
-            return self.db.scalars(
-                select(Expense).order_by(Expense.date)
-            ).all()
+            date_condition = True
+        else:
+            date_condition = Expense.date.between(start, end)
+
+        if (types is None):
+            type_condition = True
+        else:
+            type_condition = Expense.type.in_(types)
 
         return self.db.scalars(
             select(Expense)
-            .where(Expense.date.between(start, end))
+            .where(date_condition)
+            .where(type_condition)
             .order_by(Expense.date)
         ).all()
 
     def summarize(
         self,
-        start: date | None = None,
-        end: date | None = None,
+        start: Optional[date] = None,
+        end: Optional[date] = None,
+        types: Optional[List[str]] = None,
     ):
         """Return summary of expenses grouped by type within period.
 
         Parameters
         -----------------------
         start, end : date | None, default=None
-            Starting and ending dates, ignored if either is None
+            Starting and ending dates, any date if either is None
+        types : Optional[List[str]], default=None
+            Types to be selected in the result, all if None
 
         Returns
         -----------------------
@@ -157,15 +170,19 @@ class CRUDHandler:
             List of Tuples, each containing expense type and summed amounts
         """
         if (start is None) or (end is None):
-            return self.db.execute(
-                select(Expense.type, func.sum(Expense.amount))
-                .group_by(Expense.type)
-                .order_by(Expense.type)
-            ).all()
+            date_condition = True
+        else:
+            date_condition = Expense.date.between(start, end)
+
+        if (types is None):
+            type_condition = True
+        else:
+            type_condition = Expense.type.in_(types)
 
         return self.db.execute(
             select(Expense.type, func.sum(Expense.amount))
-            .where(Expense.date.between(start, end))
+            .where(date_condition)
+            .where(type_condition)
             .group_by(Expense.type)
             .order_by(Expense.type)
         ).all()
