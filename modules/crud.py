@@ -137,7 +137,7 @@ class CRUDHandler:
         else:
             date_condition = Expense.date.between(start, end)
 
-        if (types is None):
+        if types is None:
             type_condition = True
         else:
             type_condition = Expense.type.in_(types)
@@ -174,7 +174,7 @@ class CRUDHandler:
         else:
             date_condition = Expense.date.between(start, end)
 
-        if (types is None):
+        if types is None:
             type_condition = True
         else:
             type_condition = Expense.type.in_(types)

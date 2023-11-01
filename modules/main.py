@@ -96,9 +96,7 @@ def request_query(path: str):
     else:
         end = None
 
-    types = console.input(
-        "[cyan]Types :: [/cyan]"
-    )
+    types = console.input("[cyan]Types :: [/cyan]")
     types = types.split() if types != "" else None
 
     console.print("")
@@ -113,12 +111,17 @@ def request_query(path: str):
     table.add_column("Justification")
 
     for record in res:
+        # Escaping possible [...] blocks
+        escaped_justification = record.justification.replace(
+            "[", "\["
+        )
+
         table.add_row(
             str(record.id),
             str(record.date),
             record.type,
             str(record.amount),
-            record.justification,
+            escaped_justification,
         )
 
     console.print(table)
