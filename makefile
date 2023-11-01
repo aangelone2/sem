@@ -1,2 +1,2 @@
-test:
-	poetry run python3 -m pytest
+run:
+	poetry run python3 -m modules.main
