@@ -115,7 +115,6 @@ def test_date_type_cat_query():
         assert [r.description for r in res] == ["test-2.5"]
 
 
-
 def test_add():
     """Tests adding function."""
 
@@ -149,8 +148,47 @@ def test_add():
             "more", "", "test", "trial", "test", "gen"
         ]
         assert [approx(r.amount) for r in res] == [
-            -15.0, -9.00, -14.0, -13.5, -13.0, -12.0
+            -15.0, -9.0, -14.0, -13.5, -13.0, -12.0
         ]
         assert [r.description for r in res] == [
             "test-4", "test expense", "test-3", "test-2.5", "test-2", "test-1"
+        ]
+
+
+def test_load():
+    """Tests loading function."""
+
+    with CRUDHandlerContext() as ch:
+        populate_ch(ch)
+
+        # Auto-assign ID, default category, after only oldest expense
+        ch.load("resources/test-1.csv")
+
+        # retrieve all expenses
+        res = ch.query(QueryParameters())
+
+        assert [r.id for r in res] == [10, 9, 5, 4, 3, 7, 2, 1, 8]
+        assert [r.date for r in res] == [
+            str2date("2021-12-09"),
+            str2date("2022-12-10"),
+            str2date("2023-11-15"),
+            str2date("2023-12-01"),
+            str2date("2023-12-04"),
+            str2date("2023-12-12"),
+            str2date("2023-12-15"),
+            str2date("2023-12-31"),
+            str2date("2026-12-11"),
+        ]
+        assert [r.type for r in res] == [
+            "T", "L", "K", "T", "M", "G", "C", "R", "K"
+        ]
+        assert [r.category for r in res] == [
+            "", "", "more", "test", "trial", "", "test", "gen", ""
+        ]
+        assert [approx(r.amount) for r in res] == [
+            -15.0, -14.0, -15.0, -14.0, -13.5, -12.0, -13.0, -12.0, -13.0
+        ]
+        assert [r.description for r in res] == [
+            "test-4", "test-3", "test-4", "test-3", "test-2.5", "test-1",
+            "test-2", "test-1", "test-2"
         ]

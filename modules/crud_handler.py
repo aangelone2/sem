@@ -270,7 +270,7 @@ class CRUDHandler:
                         type=row[2],
                         category=(row[3] if row[3] != "" else None),
                         amount=row[4],
-                        justification=row[5],
+                        description=row[5],
                     )
                 )
 
