@@ -39,6 +39,7 @@ from datetime import datetime
 import csv
 from typing import List
 from typing import Optional
+from contextlib import contextmanager
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -274,3 +275,26 @@ class CRUDHandler:
                 )
 
             self.db.commit()
+
+
+@contextmanager
+def CRUDHandlerContext(database: str = ""):
+    """Context management function for CRUDHandler.
+
+    Parameters
+    -----------------------
+    database : str
+        Database to connect to. Default is in-memory DB.
+
+    Yields
+    -----------------------
+    CRUDHandler
+        The context-managed CRUDHandler.
+    """
+    ch = CRUDHandler()
+    ch.access(database)
+
+    try:
+        yield ch
+    finally:
+        ch.close()

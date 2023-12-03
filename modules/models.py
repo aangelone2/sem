@@ -54,7 +54,7 @@ class Expense(Base):
     type : str
         Low-level group of the expense.
     category : str
-        High-level group of the expense. Default is "general".
+        High-level group of the expense. Default is "".
     amount : float
         Amount of the expense.
     description : str
@@ -66,7 +66,7 @@ class Expense(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     date: Mapped[date]
     type: Mapped[str]
-    category: Mapped[str] = mapped_column(default="general")
+    category: Mapped[str] = mapped_column(default="")
     amount: Mapped[float]
     description: Mapped[str]
 
