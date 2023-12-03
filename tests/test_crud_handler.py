@@ -33,13 +33,25 @@ def test_global_query():
         ]
         assert [r.type for r in res] == ["K", "T", "M", "C", "R"]
         assert [r.category for r in res] == [
-            "more", "test", "trial", "test", "gen"
+            "more",
+            "test",
+            "trial",
+            "test",
+            "gen",
         ]
         assert [approx(r.amount) for r in res] == [
-            -15.0, -14.0, -13.5, -13.0, -12.0
+            -15.0,
+            -14.0,
+            -13.5,
+            -13.0,
+            -12.0,
         ]
         assert [r.description for r in res] == [
-            "test-4", "test-3", "test-2.5", "test-2", "test-1"
+            "test-4",
+            "test-3",
+            "test-2.5",
+            "test-2",
+            "test-1",
         ]
 
 
@@ -104,7 +116,7 @@ def test_date_type_cat_query():
                 start=str2date("2023-12-01"),
                 end=str2date("2023-12-31"),
                 types=["C", "M"],
-                categories=["trial", "nonexistent"]
+                categories=["trial", "nonexistent"],
             )
         )
         assert [r.id for r in res] == [3]
@@ -145,13 +157,28 @@ def test_add():
         ]
         assert [r.type for r in res] == ["K", "A", "T", "M", "C", "R"]
         assert [r.category for r in res] == [
-            "more", "", "test", "trial", "test", "gen"
+            "more",
+            "",
+            "test",
+            "trial",
+            "test",
+            "gen",
         ]
         assert [approx(r.amount) for r in res] == [
-            -15.0, -9.0, -14.0, -13.5, -13.0, -12.0
+            -15.0,
+            -9.0,
+            -14.0,
+            -13.5,
+            -13.0,
+            -12.0,
         ]
         assert [r.description for r in res] == [
-            "test-4", "test expense", "test-3", "test-2.5", "test-2", "test-1"
+            "test-4",
+            "test expense",
+            "test-3",
+            "test-2.5",
+            "test-2",
+            "test-1",
         ]
 
 
@@ -180,15 +207,46 @@ def test_load():
             str2date("2026-12-11"),
         ]
         assert [r.type for r in res] == [
-            "T", "L", "K", "T", "M", "G", "C", "R", "K"
+            "T",
+            "L",
+            "K",
+            "T",
+            "M",
+            "G",
+            "C",
+            "R",
+            "K",
         ]
         assert [r.category for r in res] == [
-            "", "", "more", "test", "trial", "", "test", "gen", ""
+            "",
+            "",
+            "more",
+            "test",
+            "trial",
+            "",
+            "test",
+            "gen",
+            "",
         ]
         assert [approx(r.amount) for r in res] == [
-            -15.0, -14.0, -15.0, -14.0, -13.5, -12.0, -13.0, -12.0, -13.0
+            -15.0,
+            -14.0,
+            -15.0,
+            -14.0,
+            -13.5,
+            -12.0,
+            -13.0,
+            -12.0,
+            -13.0,
         ]
         assert [r.description for r in res] == [
-            "test-4", "test-3", "test-4", "test-3", "test-2.5", "test-1",
-            "test-2", "test-1", "test-2"
+            "test-4",
+            "test-3",
+            "test-4",
+            "test-3",
+            "test-2.5",
+            "test-1",
+            "test-2",
+            "test-1",
+            "test-2",
         ]

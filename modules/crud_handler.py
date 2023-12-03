@@ -88,22 +88,22 @@ class QueryParameters(BaseModel):
     start: Optional[date] = Field(
         default=None,
         description="""Query start date. If `None`, dates will not be used.
-        Default is `None`."""
+        Default is `None`.""",
     )
     end: Optional[date] = Field(
         default=None,
         description="""Query end date. If `None`, dates will not be used.
-        Default is `None`."""
+        Default is `None`.""",
     )
     types: Optional[List[str]] = Field(
         default=None,
         description="""Types to filter the query. If `None`, all types. Default
-        is `None`."""
+        is `None`.""",
     )
     categories: Optional[List[str]] = Field(
         default=None,
         description="""Categories to filter the query. If `None`, all types.
-        Default is `None`."""
+        Default is `None`.""",
     )
 
 

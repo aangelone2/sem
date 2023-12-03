@@ -10,11 +10,14 @@ from modules.crud_handler import CRUDHandler
 
 
 def populate_ch(ch: CRUDHandler):
-    """Populates a passed CRUDHandler with expenses."""
-
+    """Populate a passed CRUDHandler with expenses."""
     # adding test data
     ldate = [
-        "2023-12-31", "2023-12-15", "2023-12-04", "2023-12-01", "2023-11-15"
+        "2023-12-31",
+        "2023-12-15",
+        "2023-12-04",
+        "2023-12-01",
+        "2023-11-15",
     ]
     ltype = ["R", "C", "M", "T", "K"]
     lcat = ["gen", "test", "trial", "test", "more"]

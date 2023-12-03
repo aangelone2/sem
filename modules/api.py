@@ -81,7 +81,9 @@ def get_ch() -> CRUDHandler:
             "model": Dict,
             "description": "Homepage reached.",
             "content": {
-                "application/json": {"example": {"message": "homepage reached"}}
+                "application/json": {
+                    "example": {"message": "homepage reached"}
+                }
             },
         }
     },
@@ -143,7 +145,6 @@ def add(data: ExpenseAdd, ch: CRUDHandler = Depends(get_ch)):
     },
 )
 def query(
-    params: QueryParameters = Depends(),
-    ch: CRUDHandler = Depends(get_ch)
+    params: QueryParameters = Depends(), ch: CRUDHandler = Depends(get_ch)
 ):
     return ch.query(params)
