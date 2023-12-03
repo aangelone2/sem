@@ -118,7 +118,7 @@ class CRUDHandler:
     -----------------------
     __init__()
         Construct class instance.
-    connect()
+    access()
         Create new or connect to existing DB.
     close()
         Close DB connection.
@@ -136,7 +136,7 @@ class CRUDHandler:
         """Construct class instance."""
         self.db = None
 
-    def connect(self, path: str):
+    def access(self, path: str):
         """Create new or connect to existing DB.
 
         Parameters

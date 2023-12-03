@@ -90,7 +90,7 @@ def root():
     return {"message": "homepage reached"}
 
 
-@app.post(
+@app.get(
     "/access/{database:path}",
     status_code=200,
     description="Create new or connect to existing DB.",
@@ -106,11 +106,11 @@ def root():
         },
     },
 )
-def access_database(
+def access(
     database: Annotated[str, Path(description="The DB to create/access.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
-    ch.connect(database)
+    ch.access(database)
     return {"message": "DB created/accessed"}
 
 
