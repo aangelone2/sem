@@ -136,23 +136,23 @@ class CRUDHandler:
         """Construct class instance."""
         self.db = None
 
-    def access(self, path: str):
+    def access(self, path: str = ""):
         """Create new or connect to existing DB.
 
         Parameters
         -----------------------
-        path : str
-            Path to the DB file.
+        path : str, default = ""
+            Path to the DB file. Default accesses in-memory DB.
         """
         self.close()
 
-        existing = os.path.isfile(path)
+        new = (not os.path.isfile(path)) or path == ""
 
         cstr = "sqlite+pysqlite:///"
         self.db = Session(bind=create_engine(cstr + path))
 
         # Building schema
-        if not existing:
+        if new:
             Base.metadata.create_all(self.db.get_bind())
 
     def close(self):
@@ -200,7 +200,7 @@ class CRUDHandler:
         if params.categories is None:
             cat_condition = True
         else:
-            cat_condition = Expense.type.in_(params.categories)
+            cat_condition = Expense.category.in_(params.categories)
 
         return self.db.scalars(
             select(Expense)
@@ -236,7 +236,7 @@ class CRUDHandler:
         if params.categories is None:
             cat_condition = True
         else:
-            cat_condition = Expense.type.in_(params.categories)
+            cat_condition = Expense.category.in_(params.categories)
 
         return self.db.execute(
             select(Expense.type, func.sum(Expense.amount))
