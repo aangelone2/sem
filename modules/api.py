@@ -9,8 +9,6 @@ get_ch()
 
 @app.get("/")
     Connect to the main page.
-@app.post("/access/{database}")
-    Create new or connect to existing DB.
 @app.post("/add")
     Add expense to the DB.
 @app.get("/query")
@@ -43,10 +41,11 @@ get_ch()
 from typing import List
 from typing import Dict
 from typing import Annotated
+from typing import Optional
 
 from fastapi import FastAPI
 from fastapi import Depends
-from fastapi import Path
+from fastapi import Query
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
@@ -92,30 +91,6 @@ def root():
     return {"message": "homepage reached"}
 
 
-@app.get(
-    "/access/{database:path}",
-    status_code=200,
-    description="Create new or connect to existing DB.",
-    responses={
-        200: {
-            "model": Dict,
-            "description": "DB successfully created.",
-            "content": {
-                "application/json": {
-                    "example": {"message": "DB created/accessed"}
-                }
-            },
-        },
-    },
-)
-def access(
-    database: Annotated[str, Path(description="The DB to create/access.")],
-    ch: CRUDHandler = Depends(get_ch),
-):
-    ch.access(database)
-    return {"message": "DB created/accessed"}
-
-
 @app.post(
     "/add",
     status_code=200,
@@ -145,6 +120,36 @@ def add(data: ExpenseAdd, ch: CRUDHandler = Depends(get_ch)):
     },
 )
 def query(
-    params: QueryParameters = Depends(), ch: CRUDHandler = Depends(get_ch)
+    start: Annotated[
+        Optional[str],
+        Query(
+            description="Start date (included). `None` returns all expenses.",
+        ),
+    ] = None,
+    end: Annotated[
+        Optional[str],
+        Query(
+            description="End date (included). `None` returns all expenses.",
+        ),
+    ] = None,
+    types: Annotated[
+        Optional[List[str]],
+        Query(
+            description="Included expense types. `None` does not filter.",
+        ),
+    ] = None,
+    categories: Annotated[
+        Optional[List[str]],
+        Query(
+            description="Included expense categories. `None` does not filter.",
+        ),
+    ] = None,
+    ch: CRUDHandler = Depends(get_ch),
 ):
-    return ch.query(params)
+    # Strong typing in the API description ignores list parameters,
+    # fix requires re-definition of model here
+    return ch.query(
+        QueryParameters(
+            start=start, end=end, types=types, categories=categories
+        )
+    )

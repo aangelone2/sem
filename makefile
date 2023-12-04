@@ -5,4 +5,4 @@ run:
 	poetry run python3 -m modules.main
 
 test:
-	poetry run python3 -m pytest -x -s -v .
+	SEM_TEST=1 poetry run python3 -m pytest -x -s -v .

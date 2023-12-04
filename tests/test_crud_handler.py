@@ -8,18 +8,15 @@ from pytest import approx
 
 from modules.schemas import ExpenseAdd
 from modules.crud_handler import str2date
-from modules.crud_handler import CRUDHandlerContext
 from modules.crud_handler import QueryParameters
 
-from tests.common import populate_ch
+from tests.common import CRUDHandlerTestContext
 
 
 def test_global_query():
     """Tests no-parameter query."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # retrieve all expenses
         res = ch.query(QueryParameters())
 
@@ -58,9 +55,7 @@ def test_global_query():
 def test_date_query():
     """Tests date-filtered query."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # only the 2 most recent expenses
         res = ch.query(
             QueryParameters(
@@ -82,9 +77,7 @@ def test_date_query():
 def test_date_type_query():
     """Tests date- and type-filtered query."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # only the 2nd and 3rd most recent expenses, filtered by type and date
         res = ch.query(
             QueryParameters(
@@ -107,9 +100,7 @@ def test_date_type_query():
 def test_date_type_cat_query():
     """Tests date-, type-, and category-filtered query."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # only the 3rd most recent expense, filtered by type, category and date
         res = ch.query(
             QueryParameters(
@@ -130,9 +121,7 @@ def test_date_type_cat_query():
 def test_add():
     """Tests adding function."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # Auto-assign ID, default category, after only oldest expense
         ch.add(
             ExpenseAdd(
@@ -185,16 +174,14 @@ def test_add():
 def test_load():
     """Tests loading function."""
 
-    with CRUDHandlerContext() as ch:
-        populate_ch(ch)
-
+    with CRUDHandlerTestContext() as ch:
         # Auto-assign ID, default category, after only oldest expense
         ch.load("resources/test-1.csv")
 
         # retrieve all expenses
         res = ch.query(QueryParameters())
 
-        assert [r.id for r in res] == [10, 9, 5, 4, 3, 7, 2, 1, 8]
+        assert [r.id for r in res] == [9, 8, 5, 4, 3, 6, 2, 1, 7]
         assert [r.date for r in res] == [
             str2date("2021-12-09"),
             str2date("2022-12-10"),

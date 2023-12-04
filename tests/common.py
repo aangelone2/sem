@@ -4,13 +4,27 @@
 """Common testing utilities."""
 
 
+from contextlib import contextmanager
+
 from modules.schemas import ExpenseAdd
 from modules.crud_handler import str2date
 from modules.crud_handler import CRUDHandler
 
 
-def populate_ch(ch: CRUDHandler):
-    """Populate a passed CRUDHandler with expenses."""
+@contextmanager
+def CRUDHandlerTestContext():
+    """Context management function for CRUDHandler testing.
+
+    Inints and inserts example data, removing all data from table at closure.
+
+    Yields
+    -----------------------
+    CRUDHandler
+        The context-managed and populated CRUDHandler.
+    """
+    ch = CRUDHandler()
+    ch.clear()
+
     # adding test data
     ldate = [
         "2023-12-31",
@@ -35,4 +49,8 @@ def populate_ch(ch: CRUDHandler):
             )
         )
 
-    return ch
+    try:
+        yield ch
+    finally:
+        ch.clear()
+        ch.close()

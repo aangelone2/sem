@@ -33,7 +33,6 @@ ExpenseRead
 # SOFTWARE.
 
 import datetime
-from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -58,9 +57,9 @@ class ExpenseBase(BaseModel):
 
     date: datetime.date = Field(description="Date of the expense.")
     type: str = Field(description="Low-level group of the expense.")
-    category: Optional[str] = Field(
-        default=None,
-        description="High-level group of the expense. Default is `None`.",
+    category: str = Field(
+        default="",
+        description="High-level group of the expense. Default is ''.",
     )
     amount: float = Field(description="Amount of the expense.")
     description: str = Field(description="Description of the expense.")

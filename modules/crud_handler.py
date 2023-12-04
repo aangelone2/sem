@@ -39,7 +39,6 @@ from datetime import datetime
 import csv
 from typing import List
 from typing import Optional
-from contextlib import contextmanager
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -47,6 +46,9 @@ from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import text
+from sqlalchemy_utils import database_exists
+from sqlalchemy_utils import create_database
 
 from modules.models import Base
 from modules.models import Expense
@@ -82,7 +84,8 @@ class QueryParameters(BaseModel):
     types : Optional[List[str]]
         Types to filter the query. If `None`, all types. Default is `None`.
     categories : Optional[List[str]]
-        Categories to filter the query. If `None`, all types. Default is `None`.
+        Categories to filter the query. If `None`, all types. Default is
+        `None`.
     """
 
     start: Optional[date] = Field(
@@ -119,8 +122,6 @@ class CRUDHandler:
     -----------------------
     __init__()
         Construct class instance.
-    access()
-        Create new or connect to existing DB.
     close()
         Close DB connection.
     add()
@@ -131,30 +132,28 @@ class CRUDHandler:
         Return summary of expenses grouped by type within window.
     load()
         Append the contents of a CSV file to the database.
+    clear()
+        Remove all expenses from the DB.
     """
 
     def __init__(self):
         """Construct class instance."""
-        self.db = None
+        CSTRING = "postgresql+psycopg"
+        USER = "postgres"
+        PASSWORD = ""
+        HOST = "localhost"
+        PORT = "5432"
+        DATABASE = "sem-test" if os.environ.get("SEM_TEST") == "1" else "sem"
 
-    def access(self, path: str = ""):
-        """Create new or connect to existing DB.
-
-        Parameters
-        -----------------------
-        path : str, default = ""
-            Path to the DB file. Default accesses in-memory DB.
-        """
-        self.close()
-
-        new = (not os.path.isfile(path)) or path == ""
-
-        cstr = "sqlite+pysqlite:///"
-        self.db = Session(bind=create_engine(cstr + path))
+        DB = f"{CSTRING}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+        engine = create_engine(DB)
+        if not database_exists(engine.url):
+            create_database(engine.url)
 
         # Building schema
-        if new:
-            Base.metadata.create_all(self.db.get_bind())
+        Base.metadata.create_all(engine)
+
+        self.db = Session(bind=engine)
 
     def close(self):
         """Close DB connection."""
@@ -265,36 +264,19 @@ class CRUDHandler:
             for row in reader:
                 self.db.add(
                     Expense(
-                        id=(row[0] if row[0] != "" else None),
-                        date=str2date(row[1]),
-                        type=row[2],
-                        category=(row[3] if row[3] != "" else None),
-                        amount=row[4],
-                        description=row[5],
+                        date=str2date(row[0]),
+                        type=row[1],
+                        category=row[2],
+                        amount=row[3],
+                        description=row[4],
                     )
                 )
 
             self.db.commit()
 
-
-@contextmanager
-def CRUDHandlerContext(database: str = ""):
-    """Context management function for CRUDHandler.
-
-    Parameters
-    -----------------------
-    database : str
-        Database to connect to. Default is in-memory DB.
-
-    Yields
-    -----------------------
-    CRUDHandler
-        The context-managed CRUDHandler.
-    """
-    ch = CRUDHandler()
-    ch.access(database)
-
-    try:
-        yield ch
-    finally:
-        ch.close()
+    def clear(self):
+        """Remove all expenses from the DB."""
+        self.db.query(Expense).delete()
+        # Resetting primary key
+        self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
+        self.db.commit()
