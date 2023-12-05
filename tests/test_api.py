@@ -227,11 +227,52 @@ def test_date_type_cat_query_api(test_client):
             assert approx_dict(r, e)
 
 
+def test_add_api(test_client):
+    """Tests adding function."""
+    with CRUDHandlerTestContext():
+        # Skipping category
+        response = test_client.post(
+            "/add",
+            json={
+                "date": "2023-12-12",
+                "type": "M",
+                "amount": -1.44,
+                "description": "added via API",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense added"}
+
+        assert test_client.get("/query?types=M").json() == [
+            {
+                "id": 3,
+                "date": "2023-12-04",
+                "type": "M",
+                "category": "trial",
+                "amount": -13.5,
+                "description": "test-2.5",
+            },
+            {
+                "id": 6,
+                "date": "2023-12-12",
+                "type": "M",
+                "category": "",
+                "amount": -1.44,
+                "description": "added via API",
+            },
+        ]
+
+
 def test_load_api(test_client):
     """Tests loading function."""
 
     with CRUDHandlerTestContext() as ch:
-        response = test_client.post("/load/resources/test-1.csv")
+        # fmt: off
+        response = test_client.post(
+            "/load"
+            "?csvfile=resources/test-1.csv"
+        )
+        # fmt: on
         assert response.status_code == 200
         assert response.json() == {"message": "file loaded"}
 
@@ -301,7 +342,11 @@ def test_save_api(test_client, tmpdir):
 
     with CRUDHandlerTestContext():
         file = tmpdir.join("test-2.csv")
-        response = test_client.get(f"/save/{file.strpath}")
+        # fmt:off
+        response = test_client.get(
+            "/save"
+            f"?csvfile={file.strpath}"
+        )
 
         assert response.status_code == 200
         assert response.json() == {"message": "file saved"}

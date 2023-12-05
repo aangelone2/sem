@@ -46,7 +46,6 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi import Depends
 from fastapi import Query
-from fastapi import Path
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
@@ -157,7 +156,7 @@ def query(
 
 
 @app.post(
-    "/load/{csvfile:path}",
+    "/load",
     status_code=200,
     description="Append content of CSV file to DB.",
     responses={
@@ -169,7 +168,7 @@ def query(
     },
 )
 def load(
-    csvfile: Annotated[str, Path(description="Path to the CSV file.")],
+    csvfile: Annotated[str, Query(description="Path to the CSV file.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
     ch.load(csvfile)
@@ -177,7 +176,7 @@ def load(
 
 
 @app.get(
-    "/save/{csvfile:path}",
+    "/save",
     status_code=200,
     description="Save current content of DB to CSV file.",
     responses={
@@ -189,7 +188,7 @@ def load(
     },
 )
 def save(
-    csvfile: Annotated[str, Path(description="Path to the CSV file.")],
+    csvfile: Annotated[str, Query(description="Path to the CSV file.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
     ch.save(csvfile)
