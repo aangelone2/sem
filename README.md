@@ -8,7 +8,6 @@
 [![pylint](https://img.shields.io/badge/linting-pylint-blue)](https://github.com/pylint-dev/pylint)
 [![black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
 [![poetry](https://img.shields.io/badge/build-poetry-blue)](https://github.com/python-poetry/poetry)
-[![docker](https://img.shields.io/badge/deployment-docker-blue)](https://github.com/docker)
 [![mkdocs](https://img.shields.io/badge/documentation-mkdocs-blue)](https://github.com/mkdocs/mkdocs)
 
 
