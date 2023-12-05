@@ -237,3 +237,21 @@ def test_load():
             "test-1",
             "test-2",
         ]
+
+
+def test_save(tmpdir):
+    """Tests saving function."""
+
+    with CRUDHandlerTestContext() as ch:
+        # Temporary file
+        file = tmpdir.join("test-2.csv")
+        ch.save(file.strpath)
+
+        rows = file.readlines()
+
+        assert len(rows) == 5
+        assert rows[0] == '"2023-11-15","K","more",-15.0,"test-4"\n'
+        assert rows[1] == '"2023-12-01","T","test",-14.0,"test-3"\n'
+        assert rows[2] == '"2023-12-04","M","trial",-13.5,"test-2.5"\n'
+        assert rows[3] == '"2023-12-15","C","test",-13.0,"test-2"\n'
+        assert rows[4] == '"2023-12-31","R","gen",-12.0,"test-1"\n'

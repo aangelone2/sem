@@ -132,6 +132,8 @@ class CRUDHandler:
         Return summary of expenses grouped by type within window.
     load()
         Append the contents of a CSV file to the database.
+    save()
+        Save the current contents of the DB to a CSV file.
     clear()
         Remove all expenses from the DB.
     """
@@ -273,6 +275,29 @@ class CRUDHandler:
                 )
 
             self.db.commit()
+
+    def save(self, filename: str):
+        """Save the current contents of the DB to a CSV file.
+
+        The file will not contain headers, and fields will be ordered as
+        date -> type -> category -> amount -> description.
+
+        Parameters
+        -----------------------
+        filename : str
+            Filename of the output CSV file.
+        """
+        with open(filename, "w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.writer(
+                csvfile, quotechar='"', quoting=csv.QUOTE_NONNUMERIC
+            )
+
+            expenses = self.query(QueryParameters())
+
+            for ex in expenses:
+                writer.writerow(
+                    [ex.date, ex.type, ex.category, ex.amount, ex.description]
+                )
 
     def clear(self):
         """Remove all expenses from the DB."""

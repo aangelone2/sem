@@ -10,6 +10,8 @@ from pytest import approx
 from fastapi.testclient import TestClient
 
 from modules.api import app
+from modules.crud_handler import str2date
+from modules.crud_handler import QueryParameters
 
 from tests.common import CRUDHandlerTestContext
 
@@ -120,7 +122,7 @@ def test_global_query_api(test_client):
             assert approx_dict(r, e)
 
 
-def test_date_query(test_client):
+def test_date_query_api(test_client):
     """Tests date-filtered query."""
     with CRUDHandlerTestContext():
         # fmt: off
@@ -157,7 +159,7 @@ def test_date_query(test_client):
             assert approx_dict(r, e)
 
 
-def test_date_type_query(test_client):
+def test_date_type_query_api(test_client):
     """Tests date- and type-filtered query."""
     with CRUDHandlerTestContext():
         response = test_client.get(
@@ -194,7 +196,7 @@ def test_date_type_query(test_client):
             assert approx_dict(r, e)
 
 
-def test_date_type_cat_query(test_client):
+def test_date_type_cat_query_api(test_client):
     """Tests date-, type-, and category-filtered query."""
     with CRUDHandlerTestContext():
         response = test_client.get(
@@ -223,3 +225,92 @@ def test_date_type_cat_query(test_client):
 
         for r, e in zip(response.json(), expected):
             assert approx_dict(r, e)
+
+
+def test_load_api(test_client):
+    """Tests loading function."""
+
+    with CRUDHandlerTestContext() as ch:
+        response = test_client.post("/load/resources/test-1.csv")
+        assert response.status_code == 200
+        assert response.json() == {"message": "file loaded"}
+
+        # retrieve all expenses
+        res = ch.query(QueryParameters())
+
+        assert [r.id for r in res] == [9, 8, 5, 4, 3, 6, 2, 1, 7]
+        assert [r.date for r in res] == [
+            str2date("2021-12-09"),
+            str2date("2022-12-10"),
+            str2date("2023-11-15"),
+            str2date("2023-12-01"),
+            str2date("2023-12-04"),
+            str2date("2023-12-12"),
+            str2date("2023-12-15"),
+            str2date("2023-12-31"),
+            str2date("2026-12-11"),
+        ]
+        assert [r.type for r in res] == [
+            "T",
+            "L",
+            "K",
+            "T",
+            "M",
+            "G",
+            "C",
+            "R",
+            "K",
+        ]
+        assert [r.category for r in res] == [
+            "",
+            "",
+            "more",
+            "test",
+            "trial",
+            "",
+            "test",
+            "gen",
+            "",
+        ]
+        assert [approx(r.amount) for r in res] == [
+            -15.0,
+            -14.0,
+            -15.0,
+            -14.0,
+            -13.5,
+            -12.0,
+            -13.0,
+            -12.0,
+            -13.0,
+        ]
+        assert [r.description for r in res] == [
+            "test-4",
+            "test-3",
+            "test-4",
+            "test-3",
+            "test-2.5",
+            "test-1",
+            "test-2",
+            "test-1",
+            "test-2",
+        ]
+
+
+def test_save_api(test_client, tmpdir):
+    """Tests saving function."""
+
+    with CRUDHandlerTestContext():
+        file = tmpdir.join("test-2.csv")
+        response = test_client.get(f"/save/{file.strpath}")
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "file saved"}
+
+        rows = file.readlines()
+
+        assert len(rows) == 5
+        assert rows[0] == '"2023-11-15","K","more",-15.0,"test-4"\n'
+        assert rows[1] == '"2023-12-01","T","test",-14.0,"test-3"\n'
+        assert rows[2] == '"2023-12-04","M","trial",-13.5,"test-2.5"\n'
+        assert rows[3] == '"2023-12-15","C","test",-13.0,"test-2"\n'
+        assert rows[4] == '"2023-12-31","R","gen",-12.0,"test-1"\n'

@@ -46,6 +46,7 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Path
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
@@ -153,3 +154,43 @@ def query(
             start=start, end=end, types=types, categories=categories
         )
     )
+
+
+@app.post(
+    "/load/{csvfile:path}",
+    status_code=200,
+    description="Append content of CSV file to DB.",
+    responses={
+        200: {
+            "model": Dict,
+            "description": "CSV content loaded.",
+            "content": {"application/json": {"message": "file loaded"}},
+        },
+    },
+)
+def load(
+    csvfile: Annotated[str, Path(description="Path to the CSV file.")],
+    ch: CRUDHandler = Depends(get_ch),
+):
+    ch.load(csvfile)
+    return {"message": "file loaded"}
+
+
+@app.get(
+    "/save/{csvfile:path}",
+    status_code=200,
+    description="Save current content of DB to CSV file.",
+    responses={
+        200: {
+            "model": Dict,
+            "description": "CSV content saved.",
+            "content": {"application/json": {"message": "file saved"}},
+        },
+    },
+)
+def save(
+    csvfile: Annotated[str, Path(description="Path to the CSV file.")],
+    ch: CRUDHandler = Depends(get_ch),
+):
+    ch.save(csvfile)
+    return {"message": "file saved"}
