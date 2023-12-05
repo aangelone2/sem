@@ -11,7 +11,7 @@ root()
 # The above copyright notice and this permission notice shall be included in
 # all copies or substantial portions of the Software.
 #
-# This file is part of sem-cli.
+# This file is part of sem.
 #
 # This file may be used under the terms of the GNU General Public License
 # version 3.0 as published by the Free Software Foundation and appearing in the

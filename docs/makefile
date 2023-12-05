@@ -1,0 +1,2 @@
+docs:
+	make -C ../ docs

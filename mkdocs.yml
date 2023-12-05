@@ -1,0 +1,16 @@
+site_name: sem
+
+dev_addr: "127.0.0.1:8001"
+
+theme:
+  name: "material"
+
+plugins:
+  - mkdocstrings
+
+nav:
+  - Homepage: index.md
+  - Reference:
+    - crud_handler: reference/crud_handler.md
+    - models: reference/models.md
+    - schemas: reference/schemas.md
