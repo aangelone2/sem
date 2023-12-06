@@ -431,6 +431,16 @@ def test_update_api(test_client):
         for r, e in zip(response.json(), expected):
             assert approx_dict(r, e)
 
+        # Inexistent ID
+        response = test_client.patch(
+            "/update/?id=19",
+            json = {
+                "date": "2028-05-01",
+            },
+        )
+        assert response.status_code == 404
+        assert response.json() == {"detail": "ID 19 not found"}
+
 
 def test_remove_api(test_client):
     """Tests removing request."""
@@ -473,11 +483,16 @@ def test_remove_api(test_client):
         for r, e in zip(response.json(), expected):
             assert approx_dict(r, e)
 
+        # Inexistent ID
+        response = test_client.delete("/remove/?ids=19")
+        assert response.status_code == 404
+        assert response.json() == {"detail": "ID 19 not found"}
+
+        # Complete removal
         response = test_client.delete("/remove")
 
         assert response.status_code == 200
         assert response.json() == {"message": "expense(s) removed"}
 
-        # Complete removal
         response = test_client.get("/query")
         assert not response.json()

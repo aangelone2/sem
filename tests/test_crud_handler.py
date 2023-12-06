@@ -5,11 +5,13 @@
 
 
 from pytest import approx
+from pytest import raises
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseUpdate
 from modules.crud_handler import str2date
 from modules.crud_handler import QueryParameters
+from modules.crud_handler import CRUDHandlerError
 
 from tests.common import CRUDHandlerTestContext
 
@@ -300,14 +302,19 @@ def test_update():
             "test-2.5",
         ]
 
+        # Inexistent ID
+        with raises(CRUDHandlerError) as err:
+            res = ch.update(19, ExpenseUpdate(type="QQ"))
+        assert str(err.value) == "ID 19 not found"
+
 
 def test_remove():
     """Tests removal function."""
 
     with CRUDHandlerTestContext() as ch:
+        # Selective removal
         ch.remove([3, 1])
 
-        # retrieve all expenses
         res = ch.query(QueryParameters())
 
         assert [r.id for r in res] == [5, 4, 2]
@@ -332,3 +339,12 @@ def test_remove():
             "test-3",
             "test-2",
         ]
+
+        # Inexistent ID
+        with raises(CRUDHandlerError) as err:
+            res = ch.remove([19])
+        assert str(err.value) == "ID 19 not found"
+
+        # Complete removal
+        ch.remove()
+        assert not ch.query(QueryParameters())

@@ -51,11 +51,13 @@ from fastapi import FastAPI
 from fastapi import Depends
 from fastapi import Query
 from fastapi import Body
+from fastapi import HTTPException
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
 from modules.crud_handler import QueryParameters
+from modules.crud_handler import CRUDHandlerError
 from modules.crud_handler import CRUDHandler
 
 
@@ -214,6 +216,11 @@ def save(
             "description": "Expense updated.",
             "content": {"application/json": {"message": "expense updated"}},
         },
+        404: {
+            "model": Dict,
+            "description": "Expense ID not found.",
+            "content": {"application/json": {"detail": "ID <id> not found"}},
+        },
     },
 )
 def update(
@@ -221,7 +228,10 @@ def update(
     data: Annotated[ExpenseUpdate, Body(description="New expense fields.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
-    ch.update(id, data)
+    try:
+        ch.update(id, data)
+    except CRUDHandlerError as err:
+        raise HTTPException(status_code=404, detail=str(err)) from err
     return {"message": "expense updated"}
 
 
@@ -235,6 +245,11 @@ def update(
             "description": "Expense(s) removed.",
             "content": {"application/json": {"message": "expense(s) removed"}},
         },
+        404: {
+            "model": Dict,
+            "description": "Expense ID not found.",
+            "content": {"application/json": {"detail": "ID <id> not found"}},
+        },
     },
 )
 def remove(
@@ -244,5 +259,8 @@ def remove(
     ] = None,
     ch: CRUDHandler = Depends(get_ch),
 ):
-    ch.remove(ids)
+    try:
+        ch.remove(ids)
+    except CRUDHandlerError as err:
+        raise HTTPException(status_code=404, detail=str(err)) from err
     return {"message": "expense(s) removed"}

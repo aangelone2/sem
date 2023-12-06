@@ -2,7 +2,12 @@
 
 Classes
 -----------------------
+QueryParameters
+    Strong type for query parameters.
+CRUDHandlerError
+    Exception raised for errors in DB operations.
 CRUDHandler
+    Class mediating CRUD operations.
 
 Functions
 -----------------------
@@ -109,6 +114,10 @@ class QueryParameters(BaseModel):
         description="""Categories to filter the query. If `None`, all types.
         Default is `None`.""",
     )
+
+
+class CRUDHandlerError(Exception):
+    """Exception raised for errors in DB operations."""
 
 
 class CRUDHandler:
@@ -309,8 +318,16 @@ class CRUDHandler:
             ID of the expense to update.
         data : ExpenseUpdate
             New data to patch the expense with. Unset fields will not change.
+
+        Raises
+        -----------------------
+        CRUDHandlerError
+            If specified ID is not found.
         """
         exp = self.db.get(Expense, id)
+        if exp is None:
+            raise CRUDHandlerError(f"ID {id} not found")
+
         for k,v in data.model_dump(exclude_unset=True).items():
             setattr(exp, k, v)
 
@@ -324,14 +341,24 @@ class CRUDHandler:
         -----------------------
         id_list : Optional[List[int]], default = None
             IDs of the removed expenses. `None` removes all expenses.
+
+        Raises
+        -----------------------
+        CRUDHandlerError
+            If a specified ID is not found.
         """
         if id_list is None:
             for exp in self.query(QueryParameters()):
                 self.db.delete(exp)
 
+            # Resetting primary key
             self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
         else:
             for id in id_list:
+                exp = self.db.get(Expense, id)
+                if exp is None:
+                    raise CRUDHandlerError(f"ID {id} not found")
+
                 self.db.delete(self.db.get(Expense, id))
 
         self.db.commit()
