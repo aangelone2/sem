@@ -7,6 +7,7 @@
 from pytest import approx
 
 from modules.schemas import ExpenseAdd
+from modules.schemas import ExpenseUpdate
 from modules.crud_handler import str2date
 from modules.crud_handler import QueryParameters
 
@@ -255,3 +256,79 @@ def test_save(tmpdir):
         assert rows[2] == '"2023-12-04","M","trial",-13.5,"test-2.5"\n'
         assert rows[3] == '"2023-12-15","C","test",-13.0,"test-2"\n'
         assert rows[4] == '"2023-12-31","R","gen",-12.0,"test-1"\n'
+
+
+
+def test_update():
+    """Tests updating function."""
+
+    with CRUDHandlerTestContext() as ch:
+        ch.update(3, ExpenseUpdate(date=str2date("2028-05-01")))
+        ch.update(1, ExpenseUpdate(type="P", amount=+10.00))
+
+        # retrieve all expenses
+        res = ch.query(QueryParameters())
+
+        assert [r.id for r in res] == [5, 4, 2, 1, 3]
+        assert [r.date for r in res] == [
+            str2date("2023-11-15"),
+            str2date("2023-12-01"),
+            str2date("2023-12-15"),
+            str2date("2023-12-31"),
+            str2date("2028-05-01"),
+        ]
+        assert [r.type for r in res] == ["K", "T", "C", "P", "M"]
+        assert [r.category for r in res] == [
+            "more",
+            "test",
+            "test",
+            "gen",
+            "trial",
+        ]
+        assert [approx(r.amount) for r in res] == [
+            -15.0,
+            -14.0,
+            -13.0,
+            +10.0,
+            -13.5,
+        ]
+        assert [r.description for r in res] == [
+            "test-4",
+            "test-3",
+            "test-2",
+            "test-1",
+            "test-2.5",
+        ]
+
+
+def test_remove():
+    """Tests removal function."""
+
+    with CRUDHandlerTestContext() as ch:
+        ch.remove([3, 1])
+
+        # retrieve all expenses
+        res = ch.query(QueryParameters())
+
+        assert [r.id for r in res] == [5, 4, 2]
+        assert [r.date for r in res] == [
+            str2date("2023-11-15"),
+            str2date("2023-12-01"),
+            str2date("2023-12-15"),
+        ]
+        assert [r.type for r in res] == ["K", "T", "C"]
+        assert [r.category for r in res] == [
+            "more",
+            "test",
+            "test",
+        ]
+        assert [approx(r.amount) for r in res] == [
+            -15.0,
+            -14.0,
+            -13.0,
+        ]
+        assert [r.description for r in res] == [
+            "test-4",
+            "test-3",
+            "test-2",
+        ]

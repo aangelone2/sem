@@ -70,7 +70,7 @@ def test_root(test_client):
 def test_global_query_api(test_client):
     """Tests unfiltered query."""
     with CRUDHandlerTestContext():
-        response = test_client.get("/query/")
+        response = test_client.get("/query")
 
         assert response.status_code == 200
         assert len(response.json()) == 5
@@ -359,3 +359,125 @@ def test_save_api(test_client, tmpdir):
         assert rows[2] == '"2023-12-04","M","trial",-13.5,"test-2.5"\n'
         assert rows[3] == '"2023-12-15","C","test",-13.0,"test-2"\n'
         assert rows[4] == '"2023-12-31","R","gen",-12.0,"test-1"\n'
+
+
+def test_update_api(test_client):
+    """Tests updating request."""
+    with CRUDHandlerTestContext():
+        response = test_client.patch(
+            "/update/?id=3",
+            json = {
+                "date": "2028-05-01",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense updated"}
+
+        response = test_client.patch(
+            "/update/?id=1",
+            json = {
+                "type": "P",
+                "amount": +10.00,
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense updated"}
+
+        response = test_client.get("/query")
+
+        expected = [
+            {
+                "id": 5,
+                "date": "2023-11-15",
+                "type": "K",
+                "category": "more",
+                "amount": -15.0,
+                "description": "test-4",
+            },
+            {
+                "id": 4,
+                "date": "2023-12-01",
+                "type": "T",
+                "category": "test",
+                "amount": -14.0,
+                "description": "test-3",
+            },
+            {
+                "id": 2,
+                "date": "2023-12-15",
+                "type": "C",
+                "category": "test",
+                "amount": -13.0,
+                "description": "test-2",
+            },
+            {
+                "id": 1,
+                "date": "2023-12-31",
+                "type": "P",
+                "category": "gen",
+                "amount": +10.0,
+                "description": "test-1",
+            },
+            {
+                "id": 3,
+                "date": "2028-05-01",
+                "type": "M",
+                "category": "trial",
+                "amount": -13.5,
+                "description": "test-2.5",
+            },
+        ]
+
+        for r, e in zip(response.json(), expected):
+            assert approx_dict(r, e)
+
+
+def test_remove_api(test_client):
+    """Tests removing request."""
+    with CRUDHandlerTestContext():
+        # Selective removal
+        response = test_client.delete("/remove?ids=3&ids=1")
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense(s) removed"}
+
+        response = test_client.get("/query")
+
+        expected = [
+            {
+                "id": 5,
+                "date": "2023-11-15",
+                "type": "K",
+                "category": "more",
+                "amount": -15.0,
+                "description": "test-4",
+            },
+            {
+                "id": 4,
+                "date": "2023-12-01",
+                "type": "T",
+                "category": "test",
+                "amount": -14.0,
+                "description": "test-3",
+            },
+            {
+                "id": 2,
+                "date": "2023-12-15",
+                "type": "C",
+                "category": "test",
+                "amount": -13.0,
+                "description": "test-2",
+            },
+        ]
+
+        for r, e in zip(response.json(), expected):
+            assert approx_dict(r, e)
+
+        response = test_client.delete("/remove")
+
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense(s) removed"}
+
+        # Complete removal
+        response = test_client.get("/query")
+        assert not response.json()

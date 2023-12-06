@@ -13,6 +13,10 @@ get_ch()
     Add expense to the DB.
 @app.get("/query")
     Return expenses within time window.
+@app.patch("/update")
+    Update existing expense selected by ID.
+@app.delete("/remove")
+    Remove selected or all expenses.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -46,9 +50,11 @@ from typing import Optional
 from fastapi import FastAPI
 from fastapi import Depends
 from fastapi import Query
+from fastapi import Body
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
+from modules.schemas import ExpenseUpdate
 from modules.crud_handler import QueryParameters
 from modules.crud_handler import CRUDHandler
 
@@ -103,7 +109,10 @@ def root():
         },
     },
 )
-def add(data: ExpenseAdd, ch: CRUDHandler = Depends(get_ch)):
+def add(
+    data: Annotated[ExpenseAdd, Body(description="Expense to add.")],
+    ch: CRUDHandler = Depends(get_ch)
+):
     ch.add(data)
     return {"message": "expense added"}
 
@@ -193,3 +202,47 @@ def save(
 ):
     ch.save(csvfile)
     return {"message": "file saved"}
+
+
+@app.patch(
+    "/update",
+    status_code=200,
+    description="Update existing expense selected by ID.",
+    responses={
+        200: {
+            "model": Dict,
+            "description": "Expense updated.",
+            "content": {"application/json": {"message": "expense updated"}},
+        },
+    },
+)
+def update(
+    id: Annotated[int, Query(description="ID of the expense to update.")],
+    data: Annotated[ExpenseUpdate, Body(description="New expense fields.")],
+    ch: CRUDHandler = Depends(get_ch),
+):
+    ch.update(id, data)
+    return {"message": "expense updated"}
+
+
+@app.delete(
+    "/remove",
+    status_code=200,
+    description="Remove selected or all expenses.",
+    responses={
+        200: {
+            "model": Dict,
+            "description": "Expense(s) removed.",
+            "content": {"application/json": {"message": "expense(s) removed"}},
+        },
+    },
+)
+def remove(
+    ids: Annotated[
+        Optional[List[int]],
+        Query(description="IDs of the expense(s) to remove (`None` for all.)"),
+    ] = None,
+    ch: CRUDHandler = Depends(get_ch),
+):
+    ch.remove(ids)
+    return {"message": "expense(s) removed"}

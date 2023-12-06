@@ -23,7 +23,7 @@ def CRUDHandlerTestContext():
         The context-managed and populated CRUDHandler.
     """
     ch = CRUDHandler()
-    ch.clear()
+    ch.remove()
 
     # adding test data
     ldate = [
@@ -52,5 +52,5 @@ def CRUDHandlerTestContext():
     try:
         yield ch
     finally:
-        ch.clear()
+        ch.remove()
         ch.close()

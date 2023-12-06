@@ -8,6 +8,8 @@ ExpenseAdd
     Derived expense class for insertion operations.
 ExpenseRead
     Derived expense class for query operations.
+ExpenseUpdate
+    Container for data to update existing expenses with.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -33,6 +35,7 @@ ExpenseRead
 # SOFTWARE.
 
 import datetime
+from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -79,3 +82,44 @@ class ExpenseRead(ExpenseBase):
     """
 
     id: int = Field(description="ID of the expense, primary key field.")
+
+
+class ExpenseUpdate(BaseModel):
+    """Container for data to update existing expenses with.
+
+    Attributes set to `None` will not be changed.
+
+    Attributes
+    -----------------------
+    date : Optional[datetime.date], default = None
+        Date of the expense.
+    type : Optional[str], default = None
+        Low-level group of the expense.
+    category : Optional[str], default = None
+        High-level group of the expense.
+    amount : Optional[float], default = None
+        Amount of the expense.
+    description : Optional[str], default = None
+        Description of the expense.
+    """
+
+    date: Optional[datetime.date] = Field(
+        default = None,
+        description="Date of the expense.",
+    )
+    type: Optional[str] = Field(
+        default=None,
+        description="Low-level group of the expense.",
+    )
+    category: Optional[str] = Field(
+        default=None,
+        description="High-level group of the expense.",
+    )
+    amount: Optional[float] = Field(
+        default=None,
+        description="Amount of the expense.",
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="Description of the expense.",
+    )

@@ -54,6 +54,7 @@ from modules.models import Base
 from modules.models import Expense
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
+from modules.schemas import ExpenseUpdate
 
 
 def str2date(arg: str) -> datetime.date:
@@ -134,8 +135,10 @@ class CRUDHandler:
         Append the contents of a CSV file to the database.
     save()
         Save the current contents of the DB to a CSV file.
-    clear()
-        Remove all expenses from the DB.
+    update()
+        Update expense selected by ID.
+    remove()
+        Remove selected or all expenses from the DB.
     """
 
     def __init__(self):
@@ -171,10 +174,8 @@ class CRUDHandler:
             Expense data.
         """
         # Primary key added automatically
-        new_expense = Expense(**data.model_dump())
-        self.db.add(new_expense)
+        self.db.add(Expense(**data.model_dump()))
         self.db.commit()
-        self.db.refresh(new_expense)
 
     def query(self, params: QueryParameters) -> List[ExpenseRead]:
         """Return expenses in time window.
@@ -299,9 +300,38 @@ class CRUDHandler:
                     [ex.date, ex.type, ex.category, ex.amount, ex.description]
                 )
 
-    def clear(self):
-        """Remove all expenses from the DB."""
-        self.db.query(Expense).delete()
-        # Resetting primary key
-        self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
+    def update(self, id: int, data: ExpenseUpdate):
+        """Update expense selected by ID.
+
+        Parameters
+        -----------------------
+        id : int
+            ID of the expense to update.
+        data : ExpenseUpdate
+            New data to patch the expense with. Unset fields will not change.
+        """
+        exp = self.db.get(Expense, id)
+        for k,v in data.model_dump(exclude_unset=True).items():
+            setattr(exp, k, v)
+
+        self.db.commit()
+
+
+    def remove(self, id_list: Optional[List[int]] = None):
+        """Remove selected or all expenses from the DB.
+
+        Parameters
+        -----------------------
+        id_list : Optional[List[int]], default = None
+            IDs of the removed expenses. `None` removes all expenses.
+        """
+        if id_list is None:
+            for exp in self.query(QueryParameters()):
+                self.db.delete(exp)
+
+            self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
+        else:
+            for id in id_list:
+                self.db.delete(self.db.get(Expense, id))
+
         self.db.commit()
