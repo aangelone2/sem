@@ -48,6 +48,7 @@ from typing import Optional
 from pydantic import BaseModel
 from pydantic import Field
 from pydantic import ValidationError
+
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
@@ -187,7 +188,7 @@ class CRUDHandler:
         self.db.add(Expense(**data.model_dump()))
         self.db.commit()
 
-    def query(self, params: QueryParameters) -> List[ExpenseRead]:
+    def query(self, params: QueryParameters) -> List[Expense]:
         """Return expenses in time window.
 
         Parameters
@@ -197,7 +198,7 @@ class CRUDHandler:
 
         Returns
         -----------------------
-        List[ExpenseRead]
+        List[Expense]
             List of expenses matching the criteria.
         """
         if (params.start is None) or (params.end is None):

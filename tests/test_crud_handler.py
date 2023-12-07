@@ -3,16 +3,18 @@
 
 """Test module for crud handler."""
 
+from fastapi.encoders import jsonable_encoder
 
-from pytest import approx
 from pytest import raises
 
 from modules.schemas import ExpenseAdd
+from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
 from modules.crud_handler import str2date
 from modules.crud_handler import QueryParameters
 from modules.crud_handler import CRUDHandlerError
 
+from tests.common import expenses
 from tests.common import CRUDHandlerTestContext
 
 
@@ -22,37 +24,15 @@ def test_global_query():
     with CRUDHandlerTestContext() as ch:
         # retrieve all expenses
         res = ch.query(QueryParameters())
+        expected = [
+            expenses[4],
+            expenses[3],
+            expenses[2],
+            expenses[1],
+            expenses[0],
+        ]
 
-        assert [r.id for r in res] == [5, 4, 3, 2, 1]
-        assert [r.date for r in res] == [
-            str2date("2023-11-15"),
-            str2date("2023-12-01"),
-            str2date("2023-12-04"),
-            str2date("2023-12-15"),
-            str2date("2023-12-31"),
-        ]
-        assert [r.type for r in res] == ["K", "T", "M", "C", "R"]
-        assert [r.category for r in res] == [
-            "more",
-            "test",
-            "trial",
-            "test",
-            "gen",
-        ]
-        assert [approx(r.amount) for r in res] == [
-            -15.0,
-            -14.0,
-            -13.5,
-            -13.0,
-            -12.0,
-        ]
-        assert [r.description for r in res] == [
-            "test-4",
-            "test-3",
-            "test-2.5",
-            "test-2",
-            "test-1",
-        ]
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_date_query():
@@ -66,15 +46,12 @@ def test_date_query():
                 end=str2date("2023-12-31"),
             )
         )
-        assert [r.id for r in res] == [2, 1]
-        assert [r.date for r in res] == [
-            str2date("2023-12-15"),
-            str2date("2023-12-31"),
+        expected = [
+            expenses[1],
+            expenses[0],
         ]
-        assert [r.type for r in res] == ["C", "R"]
-        assert [r.category for r in res] == ["test", "gen"]
-        assert [approx(r.amount) for r in res] == [-13.0, -12.0]
-        assert [r.description for r in res] == ["test-2", "test-1"]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_date_type_query():
@@ -89,15 +66,12 @@ def test_date_type_query():
                 types=["C", "M"],
             )
         )
-        assert [r.id for r in res] == [3, 2]
-        assert [r.date for r in res] == [
-            str2date("2023-12-04"),
-            str2date("2023-12-15"),
+        expected = [
+            expenses[2],
+            expenses[1],
         ]
-        assert [r.type for r in res] == ["M", "C"]
-        assert [r.category for r in res] == ["trial", "test"]
-        assert [approx(r.amount) for r in res] == [-13.5, -13.0]
-        assert [r.description for r in res] == ["test-2.5", "test-2"]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_date_type_cat_query():
@@ -113,12 +87,11 @@ def test_date_type_cat_query():
                 categories=["trial", "nonexistent"],
             )
         )
-        assert [r.id for r in res] == [3]
-        assert [r.date for r in res] == [str2date("2023-12-04")]
-        assert [r.type for r in res] == ["M"]
-        assert [r.category for r in res] == ["trial"]
-        assert [approx(r.amount) for r in res] == [-13.5]
-        assert [r.description for r in res] == ["test-2.5"]
+        expected = [
+            expenses[2],
+        ]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_add():
@@ -126,52 +99,27 @@ def test_add():
 
     with CRUDHandlerTestContext() as ch:
         # Auto-assign ID, default category, after only oldest expense
-        ch.add(
-            ExpenseAdd(
-                date=str2date("2023-11-18"),
-                type="A",
-                amount=-9.00,
-                description="test expense",
-            )
+        new_exp = ExpenseAdd(
+            date=str2date("2023-11-18"),
+            type="A",
+            amount=-9.00,
+            description="test expense",
         )
+
+        ch.add(new_exp)
 
         # retrieve all expenses
         res = ch.query(QueryParameters())
+        expected = [
+            expenses[4],
+            ExpenseRead(id=6, **new_exp.model_dump()),
+            expenses[3],
+            expenses[2],
+            expenses[1],
+            expenses[0],
+        ]
 
-        assert [r.id for r in res] == [5, 6, 4, 3, 2, 1]
-        assert [r.date for r in res] == [
-            str2date("2023-11-15"),
-            str2date("2023-11-18"),
-            str2date("2023-12-01"),
-            str2date("2023-12-04"),
-            str2date("2023-12-15"),
-            str2date("2023-12-31"),
-        ]
-        assert [r.type for r in res] == ["K", "A", "T", "M", "C", "R"]
-        assert [r.category for r in res] == [
-            "more",
-            "",
-            "test",
-            "trial",
-            "test",
-            "gen",
-        ]
-        assert [approx(r.amount) for r in res] == [
-            -15.0,
-            -9.0,
-            -14.0,
-            -13.5,
-            -13.0,
-            -12.0,
-        ]
-        assert [r.description for r in res] == [
-            "test-4",
-            "test expense",
-            "test-3",
-            "test-2.5",
-            "test-2",
-            "test-1",
-        ]
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_load():
@@ -183,63 +131,47 @@ def test_load():
 
         # retrieve all expenses
         res = ch.query(QueryParameters())
+        expected = [
+            ExpenseRead(
+                id=9,
+                date=str2date("2021-12-09"),
+                type="T",
+                category="",
+                amount=-15.0,
+                description="test-4",
+            ),
+            ExpenseRead(
+                id=8,
+                date=str2date("2022-12-10"),
+                type="L",
+                category="",
+                amount=-14.0,
+                description="test-3",
+            ),
+            expenses[4],
+            expenses[3],
+            expenses[2],
+            ExpenseRead(
+                id=6,
+                date=str2date("2023-12-12"),
+                type="G",
+                category="",
+                amount=-12.0,
+                description="test-1",
+            ),
+            expenses[1],
+            expenses[0],
+            ExpenseRead(
+                id=7,
+                date=str2date("2026-12-11"),
+                type="K",
+                category="",
+                amount=-13.0,
+                description="test-2",
+            ),
+        ]
 
-        assert [r.id for r in res] == [9, 8, 5, 4, 3, 6, 2, 1, 7]
-        assert [r.date for r in res] == [
-            str2date("2021-12-09"),
-            str2date("2022-12-10"),
-            str2date("2023-11-15"),
-            str2date("2023-12-01"),
-            str2date("2023-12-04"),
-            str2date("2023-12-12"),
-            str2date("2023-12-15"),
-            str2date("2023-12-31"),
-            str2date("2026-12-11"),
-        ]
-        assert [r.type for r in res] == [
-            "T",
-            "L",
-            "K",
-            "T",
-            "M",
-            "G",
-            "C",
-            "R",
-            "K",
-        ]
-        assert [r.category for r in res] == [
-            "",
-            "",
-            "more",
-            "test",
-            "trial",
-            "",
-            "test",
-            "gen",
-            "",
-        ]
-        assert [approx(r.amount) for r in res] == [
-            -15.0,
-            -14.0,
-            -15.0,
-            -14.0,
-            -13.5,
-            -12.0,
-            -13.0,
-            -12.0,
-            -13.0,
-        ]
-        assert [r.description for r in res] == [
-            "test-4",
-            "test-3",
-            "test-4",
-            "test-3",
-            "test-2.5",
-            "test-1",
-            "test-2",
-            "test-1",
-            "test-2",
-        ]
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Nonexistent file
         with raises(FileNotFoundError) as err:
@@ -248,7 +180,7 @@ def test_load():
 
         # Checking that no changes are commited in case of error
         res = ch.query(QueryParameters())
-        assert len(res) == 9
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Row with invalid field number
         # fmt: off
@@ -263,7 +195,7 @@ def test_load():
 
         # Checking that no changes are committed in case of error
         res = ch.query(QueryParameters())
-        assert len(res) == 9
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Row with invalid field
         with raises(CRUDHandlerError) as err:
@@ -274,7 +206,7 @@ def test_load():
 
         # Checking that no changes are committed in case of error
         res = ch.query(QueryParameters())
-        assert len(res) == 9
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_save(tmpdir):
@@ -295,47 +227,32 @@ def test_save(tmpdir):
         assert rows[4] == '"2023-12-31","R","gen",-12.0,"test-1"\n'
 
 
-
 def test_update():
     """Tests updating function."""
 
     with CRUDHandlerTestContext() as ch:
         ch.update(3, ExpenseUpdate(date=str2date("2028-05-01")))
-        ch.update(1, ExpenseUpdate(type="P", amount=+10.00))
+        ch.update(1, ExpenseUpdate(type="P", amount=+10.0))
 
         # retrieve all expenses
         res = ch.query(QueryParameters())
 
-        assert [r.id for r in res] == [5, 4, 2, 1, 3]
-        assert [r.date for r in res] == [
-            str2date("2023-11-15"),
-            str2date("2023-12-01"),
-            str2date("2023-12-15"),
-            str2date("2023-12-31"),
-            str2date("2028-05-01"),
+        exp3 = expenses[2].model_copy(deep=True)
+        exp3.date = str2date("2028-05-01")
+
+        exp1 = expenses[0].model_copy(deep=True)
+        exp1.type = "P"
+        exp1.amount = +10.0
+
+        expected = [
+            expenses[4],
+            expenses[3],
+            expenses[1],
+            exp1,
+            exp3,
         ]
-        assert [r.type for r in res] == ["K", "T", "C", "P", "M"]
-        assert [r.category for r in res] == [
-            "more",
-            "test",
-            "test",
-            "gen",
-            "trial",
-        ]
-        assert [approx(r.amount) for r in res] == [
-            -15.0,
-            -14.0,
-            -13.0,
-            +10.0,
-            -13.5,
-        ]
-        assert [r.description for r in res] == [
-            "test-4",
-            "test-3",
-            "test-2",
-            "test-1",
-            "test-2.5",
-        ]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Nonexistent ID
         with raises(CRUDHandlerError) as err:
@@ -344,7 +261,7 @@ def test_update():
 
         # Checking that no changes are committed in case of error
         res = ch.query(QueryParameters())
-        assert len(res) == 5
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
 def test_remove():
@@ -355,29 +272,13 @@ def test_remove():
         ch.remove([3, 1])
 
         res = ch.query(QueryParameters())
+        expected = [
+            expenses[4],
+            expenses[3],
+            expenses[1],
+        ]
 
-        assert [r.id for r in res] == [5, 4, 2]
-        assert [r.date for r in res] == [
-            str2date("2023-11-15"),
-            str2date("2023-12-01"),
-            str2date("2023-12-15"),
-        ]
-        assert [r.type for r in res] == ["K", "T", "C"]
-        assert [r.category for r in res] == [
-            "more",
-            "test",
-            "test",
-        ]
-        assert [approx(r.amount) for r in res] == [
-            -15.0,
-            -14.0,
-            -13.0,
-        ]
-        assert [r.description for r in res] == [
-            "test-4",
-            "test-3",
-            "test-2",
-        ]
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Nonexistent ID
         with raises(CRUDHandlerError) as err:
@@ -386,7 +287,7 @@ def test_remove():
 
         # Checking that no changes are committed in case of error
         res = ch.query(QueryParameters())
-        assert len(res) == 3
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Complete removal
         ch.remove()

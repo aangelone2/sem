@@ -7,15 +7,61 @@
 from contextlib import contextmanager
 
 from modules.schemas import ExpenseAdd
+from modules.schemas import ExpenseRead
 from modules.crud_handler import str2date
 from modules.crud_handler import CRUDHandler
+
+
+# Example expenses for testing
+expenses = (
+    ExpenseRead(
+        id=1,
+        date=str2date("2023-12-31"),
+        type="R",
+        category="gen",
+        amount=-12.0,
+        description="test-1",
+    ),
+    ExpenseRead(
+        id=2,
+        date=str2date("2023-12-15"),
+        type="C",
+        category="test",
+        amount=-13.0,
+        description="test-2",
+    ),
+    ExpenseRead(
+        id=3,
+        date=str2date("2023-12-04"),
+        type="M",
+        category="trial",
+        amount=-13.5,
+        description="test-2.5",
+    ),
+    ExpenseRead(
+        id=4,
+        date=str2date("2023-12-01"),
+        type="T",
+        category="test",
+        amount=-14.0,
+        description="test-3",
+    ),
+    ExpenseRead(
+        id=5,
+        date=str2date("2023-11-15"),
+        type="K",
+        category="more",
+        amount=-15.0,
+        description="test-4",
+    ),
+)
 
 
 @contextmanager
 def CRUDHandlerTestContext():
     """Context management function for CRUDHandler testing.
 
-    Inints and inserts example data, removing all data from table at closure.
+    Inits and inserts example data, removing all data from table at closure.
 
     Yields
     -----------------------
@@ -25,29 +71,9 @@ def CRUDHandlerTestContext():
     ch = CRUDHandler()
     ch.remove()
 
-    # adding test data
-    ldate = [
-        "2023-12-31",
-        "2023-12-15",
-        "2023-12-04",
-        "2023-12-01",
-        "2023-11-15",
-    ]
-    ltype = ["R", "C", "M", "T", "K"]
-    lcat = ["gen", "test", "trial", "test", "more"]
-    lamount = [-12.0, -13.0, -13.5, -14.0, -15.0]
-    ldesc = ["test-1", "test-2", "test-2.5", "test-3", "test-4"]
-
-    for d, t, c, a, j in zip(ldate, ltype, lcat, lamount, ldesc):
-        ch.add(
-            ExpenseAdd(
-                date=str2date(d),
-                type=t,
-                category=c,
-                amount=a,
-                description=j,
-            )
-        )
+    for exp in expenses:
+        # ID field ignored by pydantic constructor
+        ch.add(ExpenseAdd(**exp.model_dump()))
 
     try:
         yield ch

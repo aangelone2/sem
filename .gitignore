@@ -2,6 +2,4 @@ __pycache__/
 modules/__pycache__/
 tests/__pycache__/
 
-resources/test.sqlite
-
 site/
