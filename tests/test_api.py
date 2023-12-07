@@ -336,6 +336,40 @@ def test_load_api(test_client):
             "test-2",
         ]
 
+        # Nonexistent file
+        response = test_client.post("/load?csvfile=resources/test-missing.csv")
+
+        assert response.status_code == 404
+        assert response.json() == {
+            "detail": "resources/test-missing.csv not found"
+        }
+
+        # Invalid field number
+        response = test_client.post(
+            "/load?csvfile=resources/test-invalid_field_number.csv"
+        )
+
+        assert response.status_code == 422
+        # fmt: off
+        assert response.json() == {
+            "detail": (
+                "resources/test-invalid_field_number.csv"
+                " :: 3"
+                " :: invalid field number"
+            )
+        }
+        # fmt: on
+
+        # Row with invalid field
+        response = test_client.post(
+            "/load?csvfile=resources/test-invalid_field.csv"
+        )
+
+        assert response.status_code == 422
+        assert response.json() == {
+            "detail": "resources/test-invalid_field.csv :: 2 :: invalid field"
+        }
+
 
 def test_save_api(test_client, tmpdir):
     """Tests saving function."""

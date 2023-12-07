@@ -241,6 +241,41 @@ def test_load():
             "test-2",
         ]
 
+        # Nonexistent file
+        with raises(FileNotFoundError) as err:
+            ch.load("resources/test-missing.csv")
+        assert str(err.value) == "resources/test-missing.csv not found"
+
+        # Checking that no changes are commited in case of error
+        res = ch.query(QueryParameters())
+        assert len(res) == 9
+
+        # Row with invalid field number
+        # fmt: off
+        with raises(CRUDHandlerError) as err:
+            ch.load("resources/test-invalid_field_number.csv")
+        assert str(err.value) == (
+            "resources/test-invalid_field_number.csv"
+            " :: 3"
+            " :: invalid field number"
+        )
+        # fmt: on
+
+        # Checking that no changes are committed in case of error
+        res = ch.query(QueryParameters())
+        assert len(res) == 9
+
+        # Row with invalid field
+        with raises(CRUDHandlerError) as err:
+            ch.load("resources/test-invalid_field.csv")
+        assert str(err.value) == (
+            "resources/test-invalid_field.csv :: 2 :: invalid field"
+        )
+
+        # Checking that no changes are committed in case of error
+        res = ch.query(QueryParameters())
+        assert len(res) == 9
+
 
 def test_save(tmpdir):
     """Tests saving function."""
@@ -302,10 +337,14 @@ def test_update():
             "test-2.5",
         ]
 
-        # Inexistent ID
+        # Nonexistent ID
         with raises(CRUDHandlerError) as err:
             res = ch.update(19, ExpenseUpdate(type="QQ"))
         assert str(err.value) == "ID 19 not found"
+
+        # Checking that no changes are committed in case of error
+        res = ch.query(QueryParameters())
+        assert len(res) == 5
 
 
 def test_remove():
@@ -340,10 +379,14 @@ def test_remove():
             "test-2",
         ]
 
-        # Inexistent ID
+        # Nonexistent ID
         with raises(CRUDHandlerError) as err:
             res = ch.remove([19])
         assert str(err.value) == "ID 19 not found"
+
+        # Checking that no changes are committed in case of error
+        res = ch.query(QueryParameters())
+        assert len(res) == 3
 
         # Complete removal
         ch.remove()

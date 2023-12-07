@@ -47,6 +47,7 @@ from typing import Optional
 
 from pydantic import BaseModel
 from pydantic import Field
+from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
@@ -269,22 +270,49 @@ class CRUDHandler:
         -----------------------
         filename : str
             Filename of the input CSV file.
+
+        Raises
+        -----------------------
+        FileNotFoundError
+            - If file not found.
+        CRUDHandlerError
+            - If line with invalid number of fields is found.
+            - If line with invalid field is found.
         """
-        with open(filename, "r", newline="", encoding="utf-8") as csvfile:
-            reader = csv.reader(csvfile, quotechar='"')
+        NUM_FIELDS = 5
 
-            for row in reader:
-                self.db.add(
-                    Expense(
-                        date=str2date(row[0]),
-                        type=row[1],
-                        category=row[2],
-                        amount=row[3],
-                        description=row[4],
-                    )
-                )
+        try:
+            with open(filename, "r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.reader(csvfile, quotechar='"')
 
-            self.db.commit()
+                for ir, row in enumerate(reader):
+                    if len(row) != NUM_FIELDS:
+                        raise CRUDHandlerError(
+                            f"{filename} :: {ir+1} :: invalid field number"
+                        )
+
+                    try:
+                        exp = ExpenseAdd(
+                            date=str2date(row[0]),
+                            type=row[1],
+                            category=row[2],
+                            amount=row[3],
+                            description=row[4],
+                        )
+                    except ValidationError as err:
+                        raise CRUDHandlerError(
+                            f"{filename} :: {ir+1} :: invalid field"
+                        ) from err
+
+                    self.db.add(Expense(**exp.model_dump()))
+        except FileNotFoundError as err:
+            raise FileNotFoundError(f"{filename} not found") from err
+        except CRUDHandlerError:
+            self.db.rollback()
+            raise
+
+        self.db.commit()
+
 
     def save(self, filename: str):
         """Save the current contents of the DB to a CSV file.
@@ -324,12 +352,16 @@ class CRUDHandler:
         CRUDHandlerError
             If specified ID is not found.
         """
-        exp = self.db.get(Expense, id)
-        if exp is None:
-            raise CRUDHandlerError(f"ID {id} not found")
+        try:
+            exp = self.db.get(Expense, id)
+            if exp is None:
+                raise CRUDHandlerError(f"ID {id} not found")
 
-        for k,v in data.model_dump(exclude_unset=True).items():
-            setattr(exp, k, v)
+            for k,v in data.model_dump(exclude_unset=True).items():
+                setattr(exp, k, v)
+        except CRUDHandlerError:
+            self.db.rollback()
+            raise
 
         self.db.commit()
 
@@ -354,11 +386,15 @@ class CRUDHandler:
             # Resetting primary key
             self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
         else:
-            for id in id_list:
-                exp = self.db.get(Expense, id)
-                if exp is None:
-                    raise CRUDHandlerError(f"ID {id} not found")
+            try:
+                for id in id_list:
+                    exp = self.db.get(Expense, id)
+                    if exp is None:
+                        raise CRUDHandlerError(f"ID {id} not found")
 
-                self.db.delete(self.db.get(Expense, id))
+                    self.db.delete(exp)
+            except CRUDHandlerError:
+                self.db.rollback()
+                raise
 
         self.db.commit()

@@ -13,6 +13,10 @@ get_ch()
     Add expense to the DB.
 @app.get("/query")
     Return expenses within time window.
+@app.post("/load")
+    Append content of CSV file to DB.
+@app.get("/save")
+    Save current content of DB to CSV file.
 @app.patch("/update")
     Update existing expense selected by ID.
 @app.delete("/remove")
@@ -176,13 +180,33 @@ def query(
             "description": "CSV content loaded.",
             "content": {"application/json": {"message": "file loaded"}},
         },
+        404: {
+            "model": Dict,
+            "description": "CSV file not found.",
+            "content": {"application/json": {"detail": "<file> not found"}}
+        },
+        422: {
+            "model": Dict,
+            "description": "Invalid row or field.",
+            "content": {
+                "application/json": {
+                    "detail": "<file> :: row <row> :: <error>"
+                }
+            }
+        },
     },
 )
 def load(
     csvfile: Annotated[str, Query(description="Path to the CSV file.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
-    ch.load(csvfile)
+    try:
+        ch.load(csvfile)
+    except FileNotFoundError as err:
+        raise HTTPException(status_code=404, detail=str(err))
+    except CRUDHandlerError as err:
+        raise HTTPException(status_code=422, detail=str(err))
+
     return {"message": "file loaded"}
 
 
