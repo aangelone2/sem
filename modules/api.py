@@ -117,7 +117,7 @@ def root():
 )
 def add(
     data: Annotated[ExpenseAdd, Body(description="Expense to add.")],
-    ch: CRUDHandler = Depends(get_ch)
+    ch: CRUDHandler = Depends(get_ch),
 ):
     ch.add(data)
     return {"message": "expense added"}
@@ -183,7 +183,7 @@ def query(
         404: {
             "model": Dict,
             "description": "CSV file not found.",
-            "content": {"application/json": {"detail": "<file> not found"}}
+            "content": {"application/json": {"detail": "<file> not found"}},
         },
         422: {
             "model": Dict,
@@ -192,7 +192,7 @@ def query(
                 "application/json": {
                     "detail": "<file> :: row <row> :: <error>"
                 }
-            }
+            },
         },
     },
 )
@@ -203,9 +203,9 @@ def load(
     try:
         ch.load(csvfile)
     except FileNotFoundError as err:
-        raise HTTPException(status_code=404, detail=str(err))
+        raise HTTPException(status_code=404, detail=str(err)) from err
     except CRUDHandlerError as err:
-        raise HTTPException(status_code=422, detail=str(err))
+        raise HTTPException(status_code=422, detail=str(err)) from err
 
     return {"message": "file loaded"}
 
@@ -248,12 +248,12 @@ def save(
     },
 )
 def update(
-    id: Annotated[int, Query(description="ID of the expense to update.")],
+    ID: Annotated[int, Query(description="ID of the expense to update.")],
     data: Annotated[ExpenseUpdate, Body(description="New expense fields.")],
     ch: CRUDHandler = Depends(get_ch),
 ):
     try:
-        ch.update(id, data)
+        ch.update(ID, data)
     except CRUDHandlerError as err:
         raise HTTPException(status_code=404, detail=str(err)) from err
     return {"message": "expense updated"}

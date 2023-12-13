@@ -113,10 +113,10 @@ def test_add_api(test_client):
     with CRUDHandlerTestContext():
         # Skipping category
         new_exp = {
-           "date": "2023-12-12",
-           "type": "M",
-           "amount": -1.44,
-           "description": "added via API",
+            "date": "2023-12-12",
+            "type": "M",
+            "amount": -1.44,
+            "description": "added via API",
         }
         response = test_client.post("/add", json=new_exp)
 
@@ -137,7 +137,7 @@ def test_add_api(test_client):
 def test_load_api(test_client):
     """Tests loading function."""
 
-    with CRUDHandlerTestContext() as ch:
+    with CRUDHandlerTestContext():
         # fmt: off
         response = test_client.post(
             "/load"
@@ -257,7 +257,7 @@ def test_update_api(test_client):
     with CRUDHandlerTestContext():
         response = test_client.patch(
             "/update/?id=3",
-            json = {
+            json={
                 "date": "2028-05-01",
             },
         )
@@ -266,7 +266,7 @@ def test_update_api(test_client):
 
         response = test_client.patch(
             "/update/?id=1",
-            json = {
+            json={
                 "type": "P",
                 "amount": +10.00,
             },
@@ -297,7 +297,7 @@ def test_update_api(test_client):
         # Inexistent ID
         response = test_client.patch(
             "/update/?id=19",
-            json = {
+            json={
                 "date": "2028-05-01",
             },
         )

@@ -271,7 +271,6 @@ class CRUDHandler:
 
         self.db.commit()
 
-
     def save(self, filename: str):
         """Save the current contents of the DB to a CSV file.
 
@@ -295,12 +294,12 @@ class CRUDHandler:
                     [ex.date, ex.type, ex.category, ex.amount, ex.description]
                 )
 
-    def update(self, id: int, data: ExpenseUpdate):
+    def update(self, ID: int, data: ExpenseUpdate):
         """Update expense selected by ID.
 
         Parameters
         -----------------------
-        id : int
+        ID : int
             ID of the expense to update.
         data : ExpenseUpdate
             New data to patch the expense with. Unset fields will not change.
@@ -311,18 +310,17 @@ class CRUDHandler:
             If specified ID is not found.
         """
         try:
-            exp = self.db.get(Expense, id)
+            exp = self.db.get(Expense, ID)
             if exp is None:
-                raise CRUDHandlerError(f"ID {id} not found")
+                raise CRUDHandlerError(f"ID {ID} not found")
 
-            for k,v in data.model_dump(exclude_unset=True).items():
+            for k, v in data.model_dump(exclude_unset=True).items():
                 setattr(exp, k, v)
         except CRUDHandlerError:
             self.db.rollback()
             raise
 
         self.db.commit()
-
 
     def remove(self, id_list: Optional[List[int]] = None):
         """Remove selected or all expenses from the DB.
@@ -345,10 +343,10 @@ class CRUDHandler:
             self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
         else:
             try:
-                for id in id_list:
-                    exp = self.db.get(Expense, id)
+                for ID in id_list:
+                    exp = self.db.get(Expense, ID)
                     if exp is None:
-                        raise CRUDHandlerError(f"ID {id} not found")
+                        raise CRUDHandlerError(f"ID {ID} not found")
 
                     self.db.delete(exp)
             except CRUDHandlerError:

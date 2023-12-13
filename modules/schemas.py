@@ -107,7 +107,7 @@ class ExpenseUpdate(BaseModel):
     """
 
     date: Optional[datetime.date] = Field(
-        default = None,
+        default=None,
         description="Date of the expense.",
     )
     type: Optional[str] = Field(
