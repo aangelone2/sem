@@ -2,8 +2,6 @@
 
 Classes
 -----------------------
-QueryParameters
-    Strong type for query parameters.
 CRUDHandlerError
     Exception raised for errors in DB operations.
 CRUDHandler
@@ -39,14 +37,11 @@ str2date()
 
 
 import os
-from datetime import date
 from datetime import datetime
 import csv
 from typing import List
 from typing import Optional
 
-from pydantic import BaseModel
-from pydantic import Field
 from pydantic import ValidationError
 
 from sqlalchemy import create_engine
@@ -60,8 +55,8 @@ from sqlalchemy_utils import create_database
 from modules.models import Base
 from modules.models import Expense
 from modules.schemas import ExpenseAdd
-from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
+from modules.schemas import QueryParameters
 
 
 def str2date(arg: str) -> datetime.date:
@@ -78,44 +73,6 @@ def str2date(arg: str) -> datetime.date:
         The converted datetime
     """
     return datetime.strptime(arg, "%Y-%m-%d").date()
-
-
-class QueryParameters(BaseModel):
-    """Strong type for query parameters.
-
-    Attributes
-    -----------------------
-    start : Optional[date]
-        Query start date. If `None`, dates will not be used. Default is `None`.
-    end : Optional[date]
-        Query end date. If `None`, dates will not be used. Default is `None`.
-    types : Optional[List[str]]
-        Types to filter the query. If `None`, all types. Default is `None`.
-    categories : Optional[List[str]]
-        Categories to filter the query. If `None`, all types. Default is
-        `None`.
-    """
-
-    start: Optional[date] = Field(
-        default=None,
-        description="""Query start date. If `None`, dates will not be used.
-        Default is `None`.""",
-    )
-    end: Optional[date] = Field(
-        default=None,
-        description="""Query end date. If `None`, dates will not be used.
-        Default is `None`.""",
-    )
-    types: Optional[List[str]] = Field(
-        default=None,
-        description="""Types to filter the query. If `None`, all types. Default
-        is `None`.""",
-    )
-    categories: Optional[List[str]] = Field(
-        default=None,
-        description="""Categories to filter the query. If `None`, all types.
-        Default is `None`.""",
-    )
 
 
 class CRUDHandlerError(Exception):

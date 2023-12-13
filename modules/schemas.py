@@ -10,6 +10,8 @@ ExpenseRead
     Derived expense class for query operations.
 ExpenseUpdate
     Container for data to update existing expenses with.
+QueryParameters
+    Strong type for query parameters.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -36,6 +38,7 @@ ExpenseUpdate
 
 import datetime
 from typing import Optional
+from typing import List
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -122,4 +125,42 @@ class ExpenseUpdate(BaseModel):
     description: Optional[str] = Field(
         default=None,
         description="Description of the expense.",
+    )
+
+
+class QueryParameters(BaseModel):
+    """Strong type for query parameters.
+
+    Attributes
+    -----------------------
+    start : Optional[date]
+        Query start date. If `None`, dates will not be used. Default is `None`.
+    end : Optional[date]
+        Query end date. If `None`, dates will not be used. Default is `None`.
+    types : Optional[List[str]]
+        Types to filter the query. If `None`, all types. Default is `None`.
+    categories : Optional[List[str]]
+        Categories to filter the query. If `None`, all types. Default is
+        `None`.
+    """
+
+    start: Optional[datetime.date] = Field(
+        default=None,
+        description="""Query start date. If `None`, dates will not be used.
+        Default is `None`.""",
+    )
+    end: Optional[datetime.date] = Field(
+        default=None,
+        description="""Query end date. If `None`, dates will not be used.
+        Default is `None`.""",
+    )
+    types: Optional[List[str]] = Field(
+        default=None,
+        description="""Types to filter the query. If `None`, all types. Default
+        is `None`.""",
+    )
+    categories: Optional[List[str]] = Field(
+        default=None,
+        description="""Categories to filter the query. If `None`, all types.
+        Default is `None`.""",
     )

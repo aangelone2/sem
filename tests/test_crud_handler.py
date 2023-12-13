@@ -10,8 +10,8 @@ from pytest import raises
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
+from modules.schemas import QueryParameters
 from modules.crud_handler import str2date
-from modules.crud_handler import QueryParameters
 from modules.crud_handler import CRUDHandlerError
 
 from tests.common import expenses

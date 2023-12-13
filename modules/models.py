@@ -72,7 +72,7 @@ class Expense(Base):
 
     def __repr__(self) -> str:
         """Dunder representation method."""
-        return f"""expense(
+        return f"""Expense(
             id={self.id!r},
             date={self.date!r},
             type={self.type!r},

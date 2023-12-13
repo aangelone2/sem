@@ -60,7 +60,7 @@ from fastapi import HTTPException
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
-from modules.crud_handler import QueryParameters
+from modules.schemas import QueryParameters
 from modules.crud_handler import CRUDHandlerError
 from modules.crud_handler import CRUDHandler
 
