@@ -53,6 +53,34 @@ def test_date_query():
 
         assert jsonable_encoder(res) == jsonable_encoder(expected)
 
+        # use only start date
+        res = ch.query(
+            QueryParameters(
+                start=str2date("2023-12-04"),
+            )
+        )
+        expected = [
+            expenses[2],
+            expenses[1],
+            expenses[0],
+        ]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
+
+        # use only end date
+        res = ch.query(
+            QueryParameters(
+                end=str2date("2023-12-04"),
+            )
+        )
+        expected = [
+            expenses[4],
+            expenses[3],
+            expenses[2],
+        ]
+
+        assert jsonable_encoder(res) == jsonable_encoder(expected)
+
 
 def test_date_type_query():
     """Tests date- and type-filtered query."""

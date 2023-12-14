@@ -66,6 +66,28 @@ def test_date_query_api(test_client):
         assert response.status_code == 200
         assert response.json() == jsonable_encoder(expected)
 
+        # use only start date
+        response = test_client.get("/query?start=2023-12-04")
+        expected = [
+            expenses[2],
+            expenses[1],
+            expenses[0],
+        ]
+
+        assert response.status_code == 200
+        assert response.json() == jsonable_encoder(expected)
+
+        # use only end date
+        response = test_client.get("/query?end=2023-12-04")
+        expected = [
+            expenses[4],
+            expenses[3],
+            expenses[2],
+        ]
+
+        assert response.status_code == 200
+        assert response.json() == jsonable_encoder(expected)
+
 
 def test_date_type_query_api(test_client):
     """Tests date- and type-filtered query."""

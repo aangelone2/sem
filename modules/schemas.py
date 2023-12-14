@@ -134,9 +134,9 @@ class QueryParameters(BaseModel):
     Attributes
     -----------------------
     start : Optional[date]
-        Query start date. If `None`, dates will not be used. Default is `None`.
+        Start date (included). Not filtered on if `None`. Default is `None`.
     end : Optional[date]
-        Query end date. If `None`, dates will not be used. Default is `None`.
+        End date (included). Not filtered on if `None`. Default is `None`.
     types : Optional[List[str]]
         Types to filter the query. If `None`, all types. Default is `None`.
     categories : Optional[List[str]]
@@ -146,13 +146,13 @@ class QueryParameters(BaseModel):
 
     start: Optional[datetime.date] = Field(
         default=None,
-        description="""Query start date. If `None`, dates will not be used.
+        description="""Start date (included). Not filtered on if `None`.
         Default is `None`.""",
     )
     end: Optional[datetime.date] = Field(
         default=None,
-        description="""Query end date. If `None`, dates will not be used.
-        Default is `None`.""",
+        description="""End date (included). Not filtered on if `None`. Default
+        is `None`.""",
     )
     types: Optional[List[str]] = Field(
         default=None,

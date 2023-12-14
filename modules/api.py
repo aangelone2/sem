@@ -12,7 +12,9 @@ get_ch()
 @app.post("/add")
     Add expense to the DB.
 @app.get("/query")
-    Return expenses within time window.
+    Return expenses matching specified filters.
+@app.get("/summarize")
+    Summarize expenses matching specified filters.
 @app.post("/load")
     Append content of CSV file to DB.
 @app.get("/save")
@@ -185,25 +187,29 @@ def summarize(
     start: Annotated[
         Optional[str],
         Query(
-            description="Start date (included). `None` returns all expenses.",
+            description="""Start date (included). Not filtered on if `None`
+            (default)."""
         ),
     ] = None,
     end: Annotated[
         Optional[str],
         Query(
-            description="End date (included). `None` returns all expenses.",
+            description="""End date (included). Not filtered on if `None`
+            (default)."""
         ),
     ] = None,
     types: Annotated[
         Optional[List[str]],
         Query(
-            description="Included expense types. `None` does not filter.",
+            description="""Included expense types. Not filtered on if `None`
+            (default)."""
         ),
     ] = None,
     categories: Annotated[
         Optional[List[str]],
         Query(
-            description="Included expense categories. `None` does not filter.",
+            description="""Included expense categories. Not filtered on if
+            `None` (default)."""
         ),
     ] = None,
     ch: CRUDHandler = Depends(get_ch),

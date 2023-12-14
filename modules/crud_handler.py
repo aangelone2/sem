@@ -113,8 +113,6 @@ class CRUDHandler:
 
     def __init__(self):
         """Construct class instance."""
-        self.db = None
-
         CSTRING = "postgresql+psycopg"
         USER = "postgres"
         PASSWORD = ""
@@ -134,8 +132,7 @@ class CRUDHandler:
 
     def close(self):
         """Close DB connection."""
-        if self.db is not None:
-            self.db.close()
+        self.db.close()
 
     def add(self, data: ExpenseAdd):
         """Add expense to the DB.
@@ -150,10 +147,15 @@ class CRUDHandler:
         self.db.commit()
 
     def _build_query_conditions(self, params: QueryParameters):
-        if (params.start is None) or (params.end is None):
-            date_condition = True
+        if params.start is None:
+            start_condition = True
         else:
-            date_condition = Expense.date.between(params.start, params.end)
+            start_condition = Expense.date >= params.start
+
+        if params.end is None:
+            end_condition = True
+        else:
+            end_condition = Expense.date <= params.end
 
         if params.types is None:
             type_condition = True
@@ -165,7 +167,9 @@ class CRUDHandler:
         else:
             cat_condition = Expense.category.in_(params.categories)
 
-        return and_(date_condition, type_condition, cat_condition)
+        return and_(
+            start_condition, end_condition, type_condition, cat_condition
+        )
 
     def query(self, params: QueryParameters) -> List[Expense]:
         """Return expenses in time window.
