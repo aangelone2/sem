@@ -122,6 +122,71 @@ def test_add():
         assert jsonable_encoder(res) == jsonable_encoder(expected)
 
 
+def test_summarize():
+    """Tests summarizing function."""
+    with CRUDHandlerTestContext() as ch:
+        ch.add(
+            ExpenseAdd(
+                date=str2date("2023-11-28"),
+                type="R",
+                category="gen",
+                amount=+1.00,
+                description="test-2",
+            )
+        )
+        ch.add(
+            ExpenseAdd(
+                date=str2date("2023-11-27"),
+                type="Q",
+                category="test",
+                amount=+1.00,
+                description="test-3",
+            )
+        )
+        ch.add(
+            # Default category
+            ExpenseAdd(
+                date=str2date("2023-11-26"),
+                type="M",
+                amount=+1.00,
+                description="test-4",
+            )
+        )
+        ch.add(
+            ExpenseAdd(
+                date=str2date("2023-12-06"),
+                type="R",
+                category="gen",
+                amount=+2.00,
+                description="test-2",
+            )
+        )
+
+        # No filtering
+        res = ch.summarize(QueryParameters())
+        assert jsonable_encoder(res) == {
+            "gen": {"R": -9.0},
+            "more": {"K": -15.0},
+            "test": {"C": -13.0, "Q": +1.00, "T": -14.00},
+            "trial": {"M": -13.5},
+            "": {"M": +1.00},
+        }
+
+        # Type, category, and date filtering
+        res = ch.summarize(
+            QueryParameters(
+                start=str2date("2023-12-05"),
+                end=str2date("2023-12-31"),
+                types=["R", "C"],
+                categories=["gen", "test"],
+            )
+        )
+        assert jsonable_encoder(res) == {
+            "gen": {"R": -10.0},
+            "test": {"C": -13.0},
+        }
+
+
 def test_load():
     """Tests loading function."""
 

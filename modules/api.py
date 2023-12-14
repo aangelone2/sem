@@ -126,7 +126,7 @@ def add(
 @app.get(
     "/query",
     status_code=200,
-    description="Return expenses within time window.",
+    description="Return expenses matching specified filters.",
     responses={
         200: {
             "model": List[ExpenseRead],
@@ -164,6 +164,53 @@ def query(
     # Strong typing in the API description ignores list parameters,
     # fix requires re-definition of model here
     return ch.query(
+        QueryParameters(
+            start=start, end=end, types=types, categories=categories
+        )
+    )
+
+
+@app.get(
+    "/summarize",
+    status_code=200,
+    description="Summarize expenses matching specified filters.",
+    responses={
+        200: {
+            "model": Dict[str, Dict[str, float]],
+            "description": "Amount sums, grouped by category and type.",
+        },
+    },
+)
+def summarize(
+    start: Annotated[
+        Optional[str],
+        Query(
+            description="Start date (included). `None` returns all expenses.",
+        ),
+    ] = None,
+    end: Annotated[
+        Optional[str],
+        Query(
+            description="End date (included). `None` returns all expenses.",
+        ),
+    ] = None,
+    types: Annotated[
+        Optional[List[str]],
+        Query(
+            description="Included expense types. `None` does not filter.",
+        ),
+    ] = None,
+    categories: Annotated[
+        Optional[List[str]],
+        Query(
+            description="Included expense categories. `None` does not filter.",
+        ),
+    ] = None,
+    ch: CRUDHandler = Depends(get_ch),
+):
+    # Strong typing in the API description ignores list parameters,
+    # fix requires re-definition of model here
+    return ch.summarize(
         QueryParameters(
             start=start, end=end, types=types, categories=categories
         )

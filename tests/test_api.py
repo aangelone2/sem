@@ -134,6 +134,91 @@ def test_add_api(test_client):
         assert response.json() == jsonable_encoder(expected)
 
 
+def test_summarize_api(test_client):
+    """Tests summarizing function."""
+    with CRUDHandlerTestContext():
+        response = test_client.post(
+            "/add",
+            json={
+                "date": "2023-11-28",
+                "type": "R",
+                "category": "gen",
+                "amount": +1.00,
+                "description": "test-2",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense added"}
+
+        response = test_client.post(
+            "/add",
+            json={
+                "date": "2023-11-27",
+                "type": "Q",
+                "category": "test",
+                "amount": +1.00,
+                "description": "test-3",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense added"}
+
+        # Default category
+        response = test_client.post(
+            "/add",
+            json={
+                "date": "2023-11-26",
+                "type": "M",
+                "amount": +1.00,
+                "description": "test-4",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense added"}
+
+        response = test_client.post(
+            "/add",
+            json={
+                "date": "2023-12-06",
+                "type": "R",
+                "category": "gen",
+                "amount": +2.00,
+                "description": "test-2",
+            },
+        )
+        assert response.status_code == 200
+        assert response.json() == {"message": "expense added"}
+
+        # No filtering
+        response = test_client.get("/summarize")
+        assert response.status_code == 200
+        assert response.json() == {
+            "gen": {"R": -9.0},
+            "more": {"K": -15.0},
+            "test": {"C": -13.0, "Q": +1.00, "T": -14.00},
+            "trial": {"M": -13.5},
+            "": {"M": +1.00},
+        }
+
+        # Type, category, and date filtering
+        # fmt: off
+        response = test_client.get(
+            "/summarize"
+            "?start=2023-12-05"
+            "&end=2023-12-31"
+            "&types=R"
+            "&types=C"
+            "&categories=gen"
+            "&categories=test"
+        )
+        # fmt: on
+        assert response.status_code == 200
+        assert response.json() == {
+            "gen": {"R": -10.0},
+            "test": {"C": -13.0},
+        }
+
+
 def test_load_api(test_client):
     """Tests loading function."""
 
@@ -256,7 +341,7 @@ def test_update_api(test_client):
     """Tests updating request."""
     with CRUDHandlerTestContext():
         response = test_client.patch(
-            "/update/?id=3",
+            "/update/?ID=3",
             json={
                 "date": "2028-05-01",
             },
@@ -265,7 +350,7 @@ def test_update_api(test_client):
         assert response.json() == {"message": "expense updated"}
 
         response = test_client.patch(
-            "/update/?id=1",
+            "/update/?ID=1",
             json={
                 "type": "P",
                 "amount": +10.00,
@@ -296,7 +381,7 @@ def test_update_api(test_client):
 
         # Inexistent ID
         response = test_client.patch(
-            "/update/?id=19",
+            "/update/?ID=19",
             json={
                 "date": "2028-05-01",
             },

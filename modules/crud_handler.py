@@ -40,6 +40,7 @@ import os
 from datetime import datetime
 import csv
 from typing import List
+from typing import Dict
 from typing import Optional
 
 from pydantic import ValidationError
@@ -47,6 +48,7 @@ from pydantic import ValidationError
 from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
+from sqlalchemy import and_
 from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
 from sqlalchemy_utils import database_exists
@@ -84,8 +86,8 @@ class CRUDHandler:
 
     Attributes
     -----------------------
-    db : Session
-        Link to the DB.
+    db : Optional[Session]
+        Link to the DB. `None` until connected to DB.
 
     Public methods
     -----------------------
@@ -111,6 +113,8 @@ class CRUDHandler:
 
     def __init__(self):
         """Construct class instance."""
+        self.db = None
+
         CSTRING = "postgresql+psycopg"
         USER = "postgres"
         PASSWORD = ""
@@ -145,6 +149,24 @@ class CRUDHandler:
         self.db.add(Expense(**data.model_dump()))
         self.db.commit()
 
+    def _build_query_conditions(self, params: QueryParameters):
+        if (params.start is None) or (params.end is None):
+            date_condition = True
+        else:
+            date_condition = Expense.date.between(params.start, params.end)
+
+        if params.types is None:
+            type_condition = True
+        else:
+            type_condition = Expense.type.in_(params.types)
+
+        if params.categories is None:
+            cat_condition = True
+        else:
+            cat_condition = Expense.category.in_(params.categories)
+
+        return and_(date_condition, type_condition, cat_condition)
+
     def query(self, params: QueryParameters) -> List[Expense]:
         """Return expenses in time window.
 
@@ -158,30 +180,15 @@ class CRUDHandler:
         List[Expense]
             List of expenses matching the criteria.
         """
-        if (params.start is None) or (params.end is None):
-            date_condition = True
-        else:
-            date_condition = Expense.date.between(params.start, params.end)
-
-        if params.types is None:
-            type_condition = True
-        else:
-            type_condition = Expense.type.in_(params.types)
-
-        if params.categories is None:
-            cat_condition = True
-        else:
-            cat_condition = Expense.category.in_(params.categories)
-
         return self.db.scalars(
             select(Expense)
-            .where(date_condition)
-            .where(type_condition)
-            .where(cat_condition)
+            .where(self._build_query_conditions(params))
             .order_by(Expense.date)
         ).all()
 
-    def summarize(self, params: QueryParameters):
+    def summarize(
+        self, params: QueryParameters
+    ) -> Dict[str, Dict[str, float]]:
         """Return summary of expenses grouped by type within window.
 
         Parameters
@@ -191,32 +198,32 @@ class CRUDHandler:
 
         Returns
         -----------------------
-        List[Tuple[str, float]]
-            List of `Tuple`s, each containing expense type and summed amounts.
+        Dict[Dict[str, float]]
+            Dictionary containing inner {type: amount} dictionaries,
+            grouped by category.
         """
-        if (params.start is None) or (params.end is None):
-            date_condition = True
-        else:
-            date_condition = Expense.date.between(params.start, params.end)
-
-        if params.types is None:
-            type_condition = True
-        else:
-            type_condition = Expense.type.in_(params.types)
-
-        if params.categories is None:
-            cat_condition = True
-        else:
-            cat_condition = Expense.category.in_(params.categories)
-
-        return self.db.execute(
-            select(Expense.type, func.sum(Expense.amount))
-            .where(date_condition)
-            .where(type_condition)
-            .where(cat_condition)
+        sums = self.db.execute(
+            select(
+                Expense.category,
+                Expense.type,
+                (func.sum(Expense.amount)).label("sum"),
+            )
+            .where(self._build_query_conditions(params))
             .group_by(Expense.category, Expense.type)
             .order_by(Expense.category, Expense.type)
         ).all()
+
+        res = {}
+
+        # Creating outer-level dictionaries
+        for s in sums:
+            res[s.category] = {}
+
+        # Creating inner dictionaries
+        for s in sums:
+            res[s.category][s.type] = s.sum
+
+        return res
 
     def load(self, filename: str):
         """Append the contents of a CSV file to the database.
