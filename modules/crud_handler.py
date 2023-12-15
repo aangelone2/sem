@@ -39,8 +39,6 @@ str2date()
 import os
 from datetime import datetime
 import csv
-from typing import List
-from typing import Dict
 
 from pydantic import ValidationError
 
@@ -172,7 +170,7 @@ class CRUDHandler:
             start_condition, end_condition, type_condition, cat_condition
         )
 
-    def query(self, params: QueryParameters) -> List[Expense]:
+    def query(self, params: QueryParameters) -> list[Expense]:
         """Return expenses matching specified filters.
 
         Parameters
@@ -182,7 +180,7 @@ class CRUDHandler:
 
         Returns
         -----------------------
-        List[Expense]
+        list[Expense]
             List of expenses matching the criteria.
         """
         return self.db.scalars(
@@ -193,7 +191,7 @@ class CRUDHandler:
 
     def summarize(
         self, params: QueryParameters
-    ) -> Dict[str, Dict[str, float]]:
+    ) -> dict[str, dict[str, float]]:
         """Summarize expenses matching specified filters.
 
         Parameters
@@ -203,7 +201,7 @@ class CRUDHandler:
 
         Returns
         -----------------------
-        Dict[Dict[str, float]]
+        dict[dict[str, float]]
             Dictionary containing inner {type: amount} dictionaries,
             grouped by category.
         """
@@ -253,13 +251,13 @@ class CRUDHandler:
             setattr(exp, k, v)
         self.db.commit()
 
-    def remove(self, ids: List[int]):
+    def remove(self, ids: list[int]):
         """Remove selected expenses from the DB.
 
         Parameters
         -----------------------
-        ids : Optional[List[int]], default = None
-            IDs of the removed expenses. `None` removes all expenses.
+        ids : list[int]
+            IDs of the removed expenses.
 
         Raises
         -----------------------

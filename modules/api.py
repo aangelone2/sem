@@ -50,8 +50,6 @@ get_ch()
 # SOFTWARE.
 
 
-from typing import List
-from typing import Dict
 from typing import Annotated
 from typing import Optional
 
@@ -93,7 +91,7 @@ def get_ch() -> CRUDHandler:
     description="Connect to the main page.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "Homepage reached.",
             "content": {
                 "application/json": {
@@ -113,7 +111,7 @@ def root():
     description="Add expense to the DB.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "Expense added.",
             "content": {"application/json": {"message": "expense added"}},
         },
@@ -133,7 +131,7 @@ def add(
     description="Return expenses matching specified filters.",
     responses={
         200: {
-            "model": List[ExpenseRead],
+            "model": list[ExpenseRead],
             "description": "List of matching expenses.",
         },
     },
@@ -152,13 +150,13 @@ def query(
         ),
     ] = None,
     types: Annotated[
-        Optional[List[str]],
+        Optional[list[str]],
         Query(
             description="Included expense types. `None` does not filter.",
         ),
     ] = None,
     categories: Annotated[
-        Optional[List[str]],
+        Optional[list[str]],
         Query(
             description="Included expense categories. `None` does not filter.",
         ),
@@ -180,7 +178,7 @@ def query(
     description="Summarize expenses matching specified filters.",
     responses={
         200: {
-            "model": Dict[str, Dict[str, float]],
+            "model": dict[str, dict[str, float]],
             "description": "Amount sums, grouped by category and type.",
         },
     },
@@ -201,14 +199,14 @@ def summarize(
         ),
     ] = None,
     types: Annotated[
-        Optional[List[str]],
+        Optional[list[str]],
         Query(
             description="""Included expense types. Not filtered on if `None`
             (default)."""
         ),
     ] = None,
     categories: Annotated[
-        Optional[List[str]],
+        Optional[list[str]],
         Query(
             description="""Included expense categories. Not filtered on if
             `None` (default)."""
@@ -231,17 +229,17 @@ def summarize(
     description="Append content of CSV file to DB.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "CSV content loaded.",
             "content": {"application/json": {"message": "file loaded"}},
         },
         404: {
-            "model": Dict,
+            "model": dict,
             "description": "CSV file not found.",
             "content": {"application/json": {"detail": "<file> not found"}},
         },
         422: {
-            "model": Dict,
+            "model": dict,
             "description": "Invalid row or field.",
             "content": {
                 "application/json": {
@@ -271,7 +269,7 @@ def load(
     description="Save current content of DB to CSV file.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "CSV content saved.",
             "content": {"application/json": {"message": "file saved"}},
         },
@@ -291,12 +289,12 @@ def save(
     description="Update existing expense selected by ID.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "Expense updated.",
             "content": {"application/json": {"message": "expense updated"}},
         },
         404: {
-            "model": Dict,
+            "model": dict,
             "description": "Expense ID not found.",
             "content": {"application/json": {"detail": "ID <id> not found"}},
         },
@@ -320,12 +318,12 @@ def update(
     description="Remove selected expenses.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "Expense(s) removed.",
             "content": {"application/json": {"message": "expense(s) removed"}},
         },
         404: {
-            "model": Dict,
+            "model": dict,
             "description": "Expense ID not found.",
             "content": {"application/json": {"detail": "ID <id> not found"}},
         },
@@ -333,7 +331,7 @@ def update(
 )
 def remove(
     ids: Annotated[
-        List[int],
+        list[int],
         Query(description="IDs of the expense(s) to remove."),
     ],
     ch: CRUDHandler = Depends(get_ch),
@@ -351,7 +349,7 @@ def remove(
     description="Remove all expenses.",
     responses={
         200: {
-            "model": Dict,
+            "model": dict,
             "description": "Database erased.",
             "content": {"application/json": {"message": "database erased"}},
         },

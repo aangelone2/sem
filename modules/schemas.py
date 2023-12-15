@@ -38,7 +38,6 @@ ExpenseUpdate
 
 import datetime
 from typing import Optional
-from typing import List
 
 from pydantic import BaseModel
 from pydantic import Field
@@ -80,13 +79,13 @@ class QueryParameters(BaseModel):
 
     Attributes
     -----------------------
-    start : Optional[date]
+    start : Optional[datetime.date]
         Start date (included). Not filtered on if `None`. Default is `None`.
-    end : Optional[date]
+    end : Optional[datetime.date]
         End date (included). Not filtered on if `None`. Default is `None`.
-    types : Optional[List[str]]
+    types : Optional[list[str]]
         Types to filter the query. If `None`, all types. Default is `None`.
-    categories : Optional[List[str]]
+    categories : Optional[list[str]]
         Categories to filter the query. If `None`, all types. Default is
         `None`.
     """
@@ -101,12 +100,12 @@ class QueryParameters(BaseModel):
         description="""End date (included). Not filtered on if `None`. Default
         is `None`.""",
     )
-    types: Optional[List[str]] = Field(
+    types: Optional[list[str]] = Field(
         default=None,
         description="""Types to filter the query. If `None`, all types. Default
         is `None`.""",
     )
-    categories: Optional[List[str]] = Field(
+    categories: Optional[list[str]] = Field(
         default=None,
         description="""Categories to filter the query. If `None`, all types.
         Default is `None`.""",
