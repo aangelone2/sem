@@ -22,7 +22,9 @@ get_ch()
 @app.patch("/update")
     Update existing expense selected by ID.
 @app.delete("/remove")
-    Remove selected or all expenses.
+    Remove selected expenses.
+@app.delete("/erase")
+    Remove all expenses.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -315,7 +317,7 @@ def update(
 @app.delete(
     "/remove",
     status_code=200,
-    description="Remove selected or all expenses.",
+    description="Remove selected expenses.",
     responses={
         200: {
             "model": Dict,
@@ -331,9 +333,9 @@ def update(
 )
 def remove(
     ids: Annotated[
-        Optional[List[int]],
-        Query(description="IDs of the expense(s) to remove (`None` for all.)"),
-    ] = None,
+        List[int],
+        Query(description="IDs of the expense(s) to remove."),
+    ],
     ch: CRUDHandler = Depends(get_ch),
 ):
     try:
@@ -341,3 +343,20 @@ def remove(
     except CRUDHandlerError as err:
         raise HTTPException(status_code=404, detail=str(err)) from err
     return {"message": "expense(s) removed"}
+
+
+@app.delete(
+    "/erase",
+    status_code=200,
+    description="Remove all expenses.",
+    responses={
+        200: {
+            "model": Dict,
+            "description": "Database erased.",
+            "content": {"application/json": {"message": "database erased"}},
+        },
+    },
+)
+def erase(ch: CRUDHandler = Depends(get_ch)):
+    ch.erase()
+    return {"message": "database erased"}

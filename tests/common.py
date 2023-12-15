@@ -69,7 +69,7 @@ def CRUDHandlerTestContext():
         The context-managed and populated CRUDHandler.
     """
     ch = CRUDHandler()
-    ch.remove()
+    ch.erase()
 
     for exp in expenses:
         # ID field ignored by pydantic constructor
@@ -78,5 +78,5 @@ def CRUDHandlerTestContext():
     try:
         yield ch
     finally:
-        ch.remove()
+        ch.erase()
         ch.close()

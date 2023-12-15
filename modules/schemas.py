@@ -6,12 +6,12 @@ ExpenseBase
     Base expense class.
 ExpenseAdd
     Derived expense class for insertion operations.
+QueryParameters
+    Strong type for query parameters.
 ExpenseRead
     Derived expense class for query operations.
 ExpenseUpdate
     Container for data to update existing expenses with.
-QueryParameters
-    Strong type for query parameters.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -54,7 +54,7 @@ class ExpenseBase(BaseModel):
     type : str
         Low-level group of the expense.
     category : Optional[str]
-        High-level group of the expense. Default is `None` -> "general".
+        High-level group of the expense. Default is `None` -> "".
     amount : float
         Amount of the expense.
     description : str
@@ -73,59 +73,6 @@ class ExpenseBase(BaseModel):
 
 class ExpenseAdd(ExpenseBase):
     """Type for insertion operations."""
-
-
-class ExpenseRead(ExpenseBase):
-    """Type for selection operations.
-
-    Attributes
-    -----------------------
-    id : int
-        ID of the expense, primary key field.
-    """
-
-    id: int = Field(description="ID of the expense, primary key field.")
-
-
-class ExpenseUpdate(BaseModel):
-    """Container for data to update existing expenses with.
-
-    Attributes set to `None` will not be changed.
-
-    Attributes
-    -----------------------
-    date : Optional[datetime.date], default = None
-        Date of the expense.
-    type : Optional[str], default = None
-        Low-level group of the expense.
-    category : Optional[str], default = None
-        High-level group of the expense.
-    amount : Optional[float], default = None
-        Amount of the expense.
-    description : Optional[str], default = None
-        Description of the expense.
-    """
-
-    date: Optional[datetime.date] = Field(
-        default=None,
-        description="Date of the expense.",
-    )
-    type: Optional[str] = Field(
-        default=None,
-        description="Low-level group of the expense.",
-    )
-    category: Optional[str] = Field(
-        default=None,
-        description="High-level group of the expense.",
-    )
-    amount: Optional[float] = Field(
-        default=None,
-        description="Amount of the expense.",
-    )
-    description: Optional[str] = Field(
-        default=None,
-        description="Description of the expense.",
-    )
 
 
 class QueryParameters(BaseModel):
@@ -163,4 +110,57 @@ class QueryParameters(BaseModel):
         default=None,
         description="""Categories to filter the query. If `None`, all types.
         Default is `None`.""",
+    )
+
+
+class ExpenseRead(ExpenseBase):
+    """Type for selection operations.
+
+    Attributes
+    -----------------------
+    id : int
+        ID of the expense, primary key field.
+    """
+
+    id: int = Field(description="ID of the expense, primary key field.")
+
+
+class ExpenseUpdate(BaseModel):
+    """Container for data to update existing expenses with.
+
+    Attributes set to `None` will not be changed.
+
+    Attributes
+    -----------------------
+    date : Optional[datetime.date]
+        Date of the expense. Default is `None`.
+    type : Optional[str]
+        Low-level group of the expense. Default is `None`.
+    category : Optional[str]
+        High-level group of the expense. Default is `None`.
+    amount : Optional[float]
+        Amount of the expense. Default is `None`.
+    description : Optional[str]
+        Description of the expense. Default is `None`.
+    """
+
+    date: Optional[datetime.date] = Field(
+        default=None,
+        description="Date of the expense.",
+    )
+    type: Optional[str] = Field(
+        default=None,
+        description="Low-level group of the expense.",
+    )
+    category: Optional[str] = Field(
+        default=None,
+        description="High-level group of the expense.",
+    )
+    amount: Optional[float] = Field(
+        default=None,
+        description="Amount of the expense.",
+    )
+    description: Optional[str] = Field(
+        default=None,
+        description="Description of the expense.",
     )

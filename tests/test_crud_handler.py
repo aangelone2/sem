@@ -383,5 +383,5 @@ def test_remove():
         assert jsonable_encoder(res) == jsonable_encoder(expected)
 
         # Complete removal
-        ch.remove()
+        ch.erase()
         assert not ch.query(QueryParameters())

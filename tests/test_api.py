@@ -437,10 +437,10 @@ def test_remove_api(test_client):
         assert response.json() == {"detail": "ID 19 not found"}
 
         # Complete removal
-        response = test_client.delete("/remove")
+        response = test_client.delete("/erase")
 
         assert response.status_code == 200
-        assert response.json() == {"message": "expense(s) removed"}
+        assert response.json() == {"message": "database erased"}
 
         response = test_client.get("/query")
         assert not response.json()

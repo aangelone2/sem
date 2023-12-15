@@ -41,7 +41,6 @@ from datetime import datetime
 import csv
 from typing import List
 from typing import Dict
-from typing import Optional
 
 from pydantic import ValidationError
 
@@ -67,12 +66,12 @@ def str2date(arg: str) -> datetime.date:
     Parameters
     -----------------------
     arg : str
-        The string to convert
+        The string to convert.
 
     Returns
     -----------------------
     datetime.date
-        The converted datetime
+        The converted date.
     """
     return datetime.strptime(arg, "%Y-%m-%d").date()
 
@@ -86,8 +85,8 @@ class CRUDHandler:
 
     Attributes
     -----------------------
-    db : Optional[Session]
-        Link to the DB. `None` until connected to DB.
+    db : Session
+        Link to the DB.
 
     Public methods
     -----------------------
@@ -98,33 +97,35 @@ class CRUDHandler:
     add()
         Add expense to the DB.
     query()
-        Return expenses within time window.
+        Return expenses matching specified filters.
     summarize()
-        Return summary of expenses grouped by type within window.
+        Summarize expenses matching specified filters.
+    update()
+        Update expense selected by ID.
+    remove()
+        Remove selected expenses from the DB.
+    erase()
+        Remove all expenses from the DB.
     load()
         Append the contents of a CSV file to the database.
     save()
         Save the current contents of the DB to a CSV file.
-    update()
-        Update expense selected by ID.
-    remove()
-        Remove selected or all expenses from the DB.
     """
 
     def __init__(self):
         """Construct class instance."""
-        CSTRING = "postgresql+psycopg"
+        DRIVER = "postgresql+psycopg"
         USER = "postgres"
         PASSWORD = ""
         HOST = "localhost"
         PORT = "5432"
         DATABASE = "sem-test" if os.environ.get("SEM_TEST") == "1" else "sem"
 
-        DB = f"{CSTRING}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
-        engine = create_engine(DB)
-        if not database_exists(engine.url):
-            create_database(engine.url)
+        DB = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
+        if not database_exists(DB):
+            create_database(DB)
 
+        engine = create_engine(DB)
         # Building schema
         Base.metadata.create_all(engine)
 
@@ -172,7 +173,7 @@ class CRUDHandler:
         )
 
     def query(self, params: QueryParameters) -> List[Expense]:
-        """Return expenses in time window.
+        """Return expenses matching specified filters.
 
         Parameters
         -----------------------
@@ -193,7 +194,7 @@ class CRUDHandler:
     def summarize(
         self, params: QueryParameters
     ) -> Dict[str, Dict[str, float]]:
-        """Return summary of expenses grouped by type within window.
+        """Summarize expenses matching specified filters.
 
         Parameters
         -----------------------
@@ -219,7 +220,7 @@ class CRUDHandler:
 
         res = {}
 
-        # Creating outer-level dictionaries
+        # Creating outer dictionaries
         for s in sums:
             res[s.category] = {}
 
@@ -228,6 +229,61 @@ class CRUDHandler:
             res[s.category][s.type] = s.sum
 
         return res
+
+    def update(self, ID: int, data: ExpenseUpdate):
+        """Update expense selected by ID.
+
+        Parameters
+        -----------------------
+        ID : int
+            ID of the expense to update.
+        data : ExpenseUpdate
+            New data to patch the expense with. Unset fields will not change.
+
+        Raises
+        -----------------------
+        CRUDHandlerError
+            If specified ID is not found.
+        """
+        exp = self.db.get(Expense, ID)
+        if exp is None:
+            raise CRUDHandlerError(f"ID {ID} not found")
+
+        for k, v in data.model_dump(exclude_unset=True).items():
+            setattr(exp, k, v)
+        self.db.commit()
+
+    def remove(self, ids: List[int]):
+        """Remove selected expenses from the DB.
+
+        Parameters
+        -----------------------
+        ids : Optional[List[int]], default = None
+            IDs of the removed expenses. `None` removes all expenses.
+
+        Raises
+        -----------------------
+        CRUDHandlerError
+            If a specified ID is not found.
+        """
+        for ID in ids:
+            exp = self.db.get(Expense, ID)
+            if exp is None:
+                self.db.rollback()
+                raise CRUDHandlerError(f"ID {ID} not found")
+
+            self.db.delete(exp)
+
+        self.db.commit()
+
+    def erase(self):
+        """Remove all expenses from the DB."""
+        for exp in self.query(QueryParameters()):
+            self.db.delete(exp)
+
+        # Resetting primary key
+        self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
+        self.db.commit()
 
     def load(self, filename: str):
         """Append the contents of a CSV file to the database.
@@ -304,64 +360,3 @@ class CRUDHandler:
                 writer.writerow(
                     [ex.date, ex.type, ex.category, ex.amount, ex.description]
                 )
-
-    def update(self, ID: int, data: ExpenseUpdate):
-        """Update expense selected by ID.
-
-        Parameters
-        -----------------------
-        ID : int
-            ID of the expense to update.
-        data : ExpenseUpdate
-            New data to patch the expense with. Unset fields will not change.
-
-        Raises
-        -----------------------
-        CRUDHandlerError
-            If specified ID is not found.
-        """
-        try:
-            exp = self.db.get(Expense, ID)
-            if exp is None:
-                raise CRUDHandlerError(f"ID {ID} not found")
-
-            for k, v in data.model_dump(exclude_unset=True).items():
-                setattr(exp, k, v)
-        except CRUDHandlerError:
-            self.db.rollback()
-            raise
-
-        self.db.commit()
-
-    def remove(self, id_list: Optional[List[int]] = None):
-        """Remove selected or all expenses from the DB.
-
-        Parameters
-        -----------------------
-        id_list : Optional[List[int]], default = None
-            IDs of the removed expenses. `None` removes all expenses.
-
-        Raises
-        -----------------------
-        CRUDHandlerError
-            If a specified ID is not found.
-        """
-        if id_list is None:
-            for exp in self.query(QueryParameters()):
-                self.db.delete(exp)
-
-            # Resetting primary key
-            self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
-        else:
-            try:
-                for ID in id_list:
-                    exp = self.db.get(Expense, ID)
-                    if exp is None:
-                        raise CRUDHandlerError(f"ID {ID} not found")
-
-                    self.db.delete(exp)
-            except CRUDHandlerError:
-                self.db.rollback()
-                raise
-
-        self.db.commit()
