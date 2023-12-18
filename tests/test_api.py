@@ -10,15 +10,34 @@ import pytest
 
 from modules.schemas import ExpenseRead
 from modules.crud_handler import str2date
+from modules.crud_handler import CRUDHandler
+from modules.crud_handler import CRUDHandlerContext
 from modules.api import app
+from modules.api import get_ch
 
+from tests.common import TEST_DB_NAME
 from tests.common import expenses
 from tests.common import CRUDHandlerTestContext
+
+
+def get_test_ch() -> CRUDHandler:
+    """Yield CRUDHandler object for testing purposes.
+
+    Pre-populated with some expenses, linked to "sem-test" DB.
+
+    Yields
+    -----------------------
+    CRUDHandler
+        The CRUDHandler object.
+    """
+    with CRUDHandlerContext(TEST_DB_NAME) as ch:
+        yield ch
 
 
 @pytest.fixture
 def test_client():
     """Construct FastAPI test client."""
+    app.dependency_overrides[get_ch] = get_test_ch
     return TestClient(app)
 
 
@@ -243,7 +262,6 @@ def test_summarize_api(test_client):
 
 def test_load_api(test_client):
     """Tests loading function."""
-
     with CRUDHandlerTestContext():
         # fmt: off
         response = test_client.post(
@@ -337,7 +355,6 @@ def test_load_api(test_client):
 
 def test_save_api(test_client, tmpdir):
     """Tests saving function."""
-
     with CRUDHandlerTestContext():
         file = tmpdir.join("test-2.csv")
         # fmt:off

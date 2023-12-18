@@ -8,7 +8,6 @@
 [![pylint](https://img.shields.io/badge/linting-pylint-blue)](https://github.com/pylint-dev/pylint)
 [![black](https://img.shields.io/badge/code%20style-black-black)](https://github.com/psf/black)
 [![poetry](https://img.shields.io/badge/build-poetry-blue)](https://github.com/python-poetry/poetry)
-[![docker](https://img.shields.io/badge/deployment-docker-blue)](https://github.com/docker)
 [![mkdocs](https://img.shields.io/badge/documentation-mkdocs-blue)](https://github.com/mkdocs/mkdocs)
 
 
@@ -73,7 +72,7 @@ $ make cli
 Local testing can be performed by running
 
 ```bash
-$ SEM_TEST=1 poetry run python3 -m pytest -x -s -v .
+$ poetry run python3 -m pytest -x -s -v .
 ```
 
 or

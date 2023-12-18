@@ -72,7 +72,7 @@ $ make cli
 Local testing can be performed by running
 
 ```bash
-$ SEM_TEST=1 poetry run python3 -m pytest -x -s -v .
+$ poetry run python3 -m pytest -x -s -v .
 ```
 
 or

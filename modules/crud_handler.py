@@ -36,23 +36,19 @@ str2date()
 # SOFTWARE.
 
 
-import os
 from datetime import datetime
 import csv
+from contextlib import contextmanager
 
 from pydantic import ValidationError
 
-from sqlalchemy import create_engine
 from sqlalchemy import select
 from sqlalchemy import func
 from sqlalchemy import and_
-from sqlalchemy.orm import Session
 from sqlalchemy.sql import text
-from sqlalchemy_utils import database_exists
-from sqlalchemy_utils import create_database
 
-from modules.models import Base
 from modules.models import Expense
+from modules.session import init_session
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseUpdate
 from modules.schemas import QueryParameters
@@ -83,13 +79,13 @@ class CRUDHandler:
 
     Attributes
     -----------------------
-    db : Session
-        Link to the DB.
+    session : sqlalchemy.orm.Session
+        Session connected to the specified DB.
 
     Public methods
     -----------------------
     __init__()
-        Construct class instance.
+        Initialize class instance.
     close()
         Close DB connection.
     add()
@@ -110,28 +106,19 @@ class CRUDHandler:
         Save the current contents of the DB to a CSV file.
     """
 
-    def __init__(self):
-        """Construct class instance."""
-        DRIVER = "postgresql+psycopg"
-        USER = "postgres"
-        PASSWORD = ""
-        HOST = "localhost"
-        PORT = "5432"
-        DATABASE = "sem-test" if os.environ.get("SEM_TEST") == "1" else "sem"
+    def __init__(self, database: str):
+        """Initialize class instance.
 
-        DB = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{DATABASE}"
-        if not database_exists(DB):
-            create_database(DB)
-
-        engine = create_engine(DB)
-        # Building schema
-        Base.metadata.create_all(engine)
-
-        self.db = Session(bind=engine)
+        Parameters
+        -----------------------
+        database : str
+            Database name.
+        """
+        self.session = init_session(database)
 
     def close(self):
         """Close DB connection."""
-        self.db.close()
+        self.session.close()
 
     def add(self, data: ExpenseAdd):
         """Add expense to the DB.
@@ -142,8 +129,8 @@ class CRUDHandler:
             Expense data.
         """
         # Primary key added automatically
-        self.db.add(Expense(**data.model_dump()))
-        self.db.commit()
+        self.session.add(Expense(**data.model_dump()))
+        self.session.commit()
 
     def _build_query_conditions(self, params: QueryParameters):
         if params.start is None:
@@ -183,7 +170,7 @@ class CRUDHandler:
         list[Expense]
             List of expenses matching the criteria.
         """
-        return self.db.scalars(
+        return self.session.scalars(
             select(Expense)
             .where(self._build_query_conditions(params))
             .order_by(Expense.date)
@@ -205,7 +192,7 @@ class CRUDHandler:
             Dictionary containing inner {type: amount} dictionaries,
             grouped by category.
         """
-        sums = self.db.execute(
+        sums = self.session.execute(
             select(
                 Expense.category,
                 Expense.type,
@@ -243,13 +230,13 @@ class CRUDHandler:
         CRUDHandlerError
             If specified ID is not found.
         """
-        exp = self.db.get(Expense, ID)
+        exp = self.session.get(Expense, ID)
         if exp is None:
             raise CRUDHandlerError(f"ID {ID} not found")
 
         for k, v in data.model_dump(exclude_unset=True).items():
             setattr(exp, k, v)
-        self.db.commit()
+        self.session.commit()
 
     def remove(self, ids: list[int]):
         """Remove selected expenses from the DB.
@@ -265,23 +252,23 @@ class CRUDHandler:
             If a specified ID is not found.
         """
         for ID in ids:
-            exp = self.db.get(Expense, ID)
+            exp = self.session.get(Expense, ID)
             if exp is None:
-                self.db.rollback()
+                self.session.rollback()
                 raise CRUDHandlerError(f"ID {ID} not found")
 
-            self.db.delete(exp)
+            self.session.delete(exp)
 
-        self.db.commit()
+        self.session.commit()
 
     def erase(self):
         """Remove all expenses from the DB."""
         for exp in self.query(QueryParameters()):
-            self.db.delete(exp)
+            self.session.delete(exp)
 
         # Resetting primary key
-        self.db.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
-        self.db.commit()
+        self.session.execute(text("ALTER SEQUENCE expenses_id_seq RESTART"))
+        self.session.commit()
 
     def load(self, filename: str):
         """Append the contents of a CSV file to the database.
@@ -327,14 +314,14 @@ class CRUDHandler:
                             f"{filename} :: {ir+1} :: invalid field"
                         ) from err
 
-                    self.db.add(Expense(**exp.model_dump()))
+                    self.session.add(Expense(**exp.model_dump()))
         except FileNotFoundError as err:
             raise FileNotFoundError(f"{filename} not found") from err
         except CRUDHandlerError:
-            self.db.rollback()
+            self.session.rollback()
             raise
 
-        self.db.commit()
+        self.session.commit()
 
     def save(self, filename: str):
         """Save the current contents of the DB to a CSV file.
@@ -358,3 +345,24 @@ class CRUDHandler:
                 writer.writerow(
                     [ex.date, ex.type, ex.category, ex.amount, ex.description]
                 )
+
+
+@contextmanager
+def CRUDHandlerContext(database: str) -> CRUDHandler:
+    """Manage context for CRUDHandler.
+
+    Parameters
+    -----------------------
+    database : str
+        Database name.
+
+    Yields
+    -----------------------
+    CRUDHandler
+        The context-managed CRUDHandler.
+    """
+    ch = CRUDHandler(database)
+    try:
+        yield ch
+    finally:
+        ch.close()

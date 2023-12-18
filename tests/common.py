@@ -12,6 +12,9 @@ from modules.crud_handler import str2date
 from modules.crud_handler import CRUDHandler
 
 
+TEST_DB_NAME = "sem-test"
+
+
 # Example expenses for testing
 expenses = (
     ExpenseRead(
@@ -58,8 +61,8 @@ expenses = (
 
 
 @contextmanager
-def CRUDHandlerTestContext():
-    """Context management function for CRUDHandler testing.
+def CRUDHandlerTestContext() -> CRUDHandler:
+    """Manage testing context for CRUDHandler.
 
     Inits and inserts example data, removing all data from table at closure.
 
@@ -68,7 +71,9 @@ def CRUDHandlerTestContext():
     CRUDHandler
         The context-managed and populated CRUDHandler.
     """
-    ch = CRUDHandler()
+    # Easier to define a new context manager,
+    # should call __enter__ and __exit__ methods to erase().
+    ch = CRUDHandler(TEST_DB_NAME)
     ch.erase()
 
     for exp in expenses:

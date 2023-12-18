@@ -65,7 +65,10 @@ from modules.schemas import ExpenseUpdate
 from modules.schemas import QueryParameters
 from modules.crud_handler import CRUDHandlerError
 from modules.crud_handler import CRUDHandler
+from modules.crud_handler import CRUDHandlerContext
 
+
+DEFAULT_DB_NAME = "sem"
 
 app = FastAPI(title="sem")
 
@@ -78,11 +81,8 @@ def get_ch() -> CRUDHandler:
     CRUDHandler
         The CRUDHandler object.
     """
-    ch = CRUDHandler()
-    try:
+    with CRUDHandlerContext(DEFAULT_DB_NAME) as ch:
         yield ch
-    finally:
-        ch.close()
 
 
 @app.get(
