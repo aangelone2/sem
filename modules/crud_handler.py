@@ -11,6 +11,8 @@ Functions
 -----------------------
 str2date()
     Convert string in YYYY-MM-DD format to date.
+CRUDHandlerContext()
+    Manage context for CRUDHandler.
 """
 
 # Copyright (c) 2023 Adriano Angelone

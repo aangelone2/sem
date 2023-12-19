@@ -125,28 +125,17 @@ def add(
     return {"message": "expense added"}
 
 
-@app.get(
-    "/query",
-    status_code=200,
-    description="Return expenses matching specified filters.",
-    responses={
-        200: {
-            "model": list[ExpenseRead],
-            "description": "List of matching expenses.",
-        },
-    },
-)
-def query(
+def query_parameters(
     start: Annotated[
         Optional[str],
         Query(
-            description="Start date (included). `None` returns all expenses.",
+            description="Start date (included). `None` does not filter.",
         ),
     ] = None,
     end: Annotated[
         Optional[str],
         Query(
-            description="End date (included). `None` returns all expenses.",
+            description="End date (included). `None` does not filter.",
         ),
     ] = None,
     types: Annotated[
@@ -161,15 +150,30 @@ def query(
             description="Included expense categories. `None` does not filter.",
         ),
     ] = None,
+) -> QueryParameters:
+    return QueryParameters(
+        start=start, end=end, types=types, categories=categories
+    )
+
+
+@app.get(
+    "/query",
+    status_code=200,
+    description="Return expenses matching specified filters.",
+    responses={
+        200: {
+            "model": list[ExpenseRead],
+            "description": "List of matching expenses.",
+        },
+    },
+)
+def query(
+    params: QueryParameters = Depends(query_parameters),
     ch: CRUDHandler = Depends(get_ch),
 ):
     # Strong typing in the API description ignores list parameters,
     # fix requires re-definition of model here
-    return ch.query(
-        QueryParameters(
-            start=start, end=end, types=types, categories=categories
-        )
-    )
+    return ch.query(params)
 
 
 @app.get(
@@ -184,43 +188,12 @@ def query(
     },
 )
 def summarize(
-    start: Annotated[
-        Optional[str],
-        Query(
-            description="""Start date (included). Not filtered on if `None`
-            (default)."""
-        ),
-    ] = None,
-    end: Annotated[
-        Optional[str],
-        Query(
-            description="""End date (included). Not filtered on if `None`
-            (default)."""
-        ),
-    ] = None,
-    types: Annotated[
-        Optional[list[str]],
-        Query(
-            description="""Included expense types. Not filtered on if `None`
-            (default)."""
-        ),
-    ] = None,
-    categories: Annotated[
-        Optional[list[str]],
-        Query(
-            description="""Included expense categories. Not filtered on if
-            `None` (default)."""
-        ),
-    ] = None,
+    params: QueryParameters = Depends(query_parameters),
     ch: CRUDHandler = Depends(get_ch),
 ):
     # Strong typing in the API description ignores list parameters,
     # fix requires re-definition of model here
-    return ch.summarize(
-        QueryParameters(
-            start=start, end=end, types=types, categories=categories
-        )
-    )
+    return ch.summarize(params)
 
 
 @app.post(
