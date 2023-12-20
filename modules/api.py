@@ -111,10 +111,12 @@ def root():
     description="Add expense to the DB.",
     responses={
         200: {
-            "model": dict,
+            "model": dict[str, str],
             "description": "Expense added.",
-            "content": {"application/json": {"message": "expense added"}},
-        },
+            "content": {
+                "application/json": {"example": {"message": "expense added"}}
+            },
+        }
     },
 )
 def add(
@@ -171,8 +173,6 @@ def query(
     params: QueryParameters = Depends(query_parameters),
     ch: CRUDHandler = Depends(get_ch),
 ):
-    # Strong typing in the API description ignores list parameters,
-    # fix requires re-definition of model here
     return ch.query(params)
 
 
@@ -191,8 +191,6 @@ def summarize(
     params: QueryParameters = Depends(query_parameters),
     ch: CRUDHandler = Depends(get_ch),
 ):
-    # Strong typing in the API description ignores list parameters,
-    # fix requires re-definition of model here
     return ch.summarize(params)
 
 
@@ -204,19 +202,23 @@ def summarize(
         200: {
             "model": dict,
             "description": "CSV content loaded.",
-            "content": {"application/json": {"message": "file loaded"}},
+            "content": {
+                "application/json": {"example": {"message": "file loaded"}}
+            },
         },
         404: {
             "model": dict,
             "description": "CSV file not found.",
-            "content": {"application/json": {"detail": "<file> not found"}},
+            "content": {
+                "application/json": {"example": {"detail": "<file> not found"}}
+            },
         },
         422: {
             "model": dict,
             "description": "Invalid row or field.",
             "content": {
                 "application/json": {
-                    "detail": "<file> :: row <row> :: <error>"
+                    "example": {"detail": "<file> :: row <row> :: <error>"}
                 }
             },
         },
@@ -244,7 +246,9 @@ def load(
         200: {
             "model": dict,
             "description": "CSV content saved.",
-            "content": {"application/json": {"message": "file saved"}},
+            "content": {
+                "application/json": {"example": {"message": "file saved"}}
+            },
         },
     },
 )
@@ -264,12 +268,18 @@ def save(
         200: {
             "model": dict,
             "description": "Expense updated.",
-            "content": {"application/json": {"message": "expense updated"}},
+            "content": {
+                "application/json": {"example": {"message": "expense updated"}}
+            },
         },
         404: {
             "model": dict,
             "description": "Expense ID not found.",
-            "content": {"application/json": {"detail": "ID <id> not found"}},
+            "content": {
+                "application/json": {
+                    "example": {"detail": "ID <id> not found"}
+                }
+            },
         },
     },
 )
@@ -293,12 +303,20 @@ def update(
         200: {
             "model": dict,
             "description": "Expense(s) removed.",
-            "content": {"application/json": {"message": "expense(s) removed"}},
+            "content": {
+                "application/json": {
+                    "example": {"message": "expense(s) removed"}
+                }
+            },
         },
         404: {
             "model": dict,
             "description": "Expense ID not found.",
-            "content": {"application/json": {"detail": "ID <id> not found"}},
+            "content": {
+                "application/json": {
+                    "example": {"detail": "ID <id> not found"}
+                }
+            },
         },
     },
 )
@@ -324,7 +342,9 @@ def remove(
         200: {
             "model": dict,
             "description": "Database erased.",
-            "content": {"application/json": {"message": "database erased"}},
+            "content": {
+                "application/json": {"example": {"message": "database erased"}}
+            },
         },
     },
 )
