@@ -337,7 +337,7 @@ def remove(
 @app.delete(
     "/erase",
     status_code=200,
-    description="Remove all expenses.",
+    description="Remove all expenses and reset ID field.",
     responses={
         200: {
             "model": dict,

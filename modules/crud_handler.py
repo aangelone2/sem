@@ -264,7 +264,7 @@ class CRUDHandler:
         self.session.commit()
 
     def erase(self):
-        """Remove all expenses from the DB."""
+        """Remove all expenses from the DB and reset ID field."""
         for exp in self.query(QueryParameters()):
             self.session.delete(exp)
 

@@ -1,4 +1,4 @@
-"""Interface functions for server requests.
+"""CLI functions to perform server requests.
 
 Functions
 -----------------------
@@ -32,9 +32,12 @@ root()
 import functools
 import pprint
 
+from fastapi.encoders import jsonable_encoder
+
 import requests
 
 from modules.schemas import ExpenseAdd
+from modules.schemas import ExpenseUpdate
 
 
 server = "http://127.0.0.1:8000"
@@ -49,32 +52,160 @@ def root():
     pprint(response.json())
 
 
-def access(database: str):
-    """Create new or connect to existing DB.
+def add():
+    """Add an Expense, querying the user for data."""
+    date = input("Expense date (YYYY-MM-DD) :: ")
+    typ = input("Expense type :: ")
+    category = input("Expense category, skippable :: ")
+    amount = input("Expense amount :: ")
+    description = input("Expense description :: ")
 
-    Parameters
-    -----------------------
-    database : str
-        Path to the new/existing DB.
-    """
-    response = requests.get(server + f"/access/{database}")
+    response = requests.post(
+        server + "/add",
+        json=jsonable_encoder(
+            ExpenseAdd(
+                date=date,
+                type=typ,
+                category=category,
+                amount=amount,
+                description=description,
+            )
+        ),
+    )
 
     pprint(response.status_code)
     pprint(response.json())
 
 
-def add(data: ExpenseAdd):
-    """Add a metadata document to a collection.
+def get_query_parameters() -> str:
+    """Query the user for QueryParameters content and returns a query string.
 
     Parameters
     -----------------------
-    data : ExpenseAdd
-        Data of the expense to add.
+    params : QueryParameters
+        Input data object.
+
+    Returns
+    -----------------------
+    str
+        The prepared query parameter string.
     """
-    response = requests.post(
-        server + "/add",
-        json={"data": data.model_dump(exclude_unset=True)},
+    start = input("Query start date (YYYY-MM-DD), skippable :: ")
+    start = f"start={start}" if start else ""
+
+    end = input("Query end date (YYYY-MM-DD), skippable :: ")
+    end = f"end={end}" if end else ""
+
+    types = input("Comma-separated expense types, skippable :: ")
+    if types:
+        types = types.split(",")
+        types = "".join([f"&types={t}" for t in types])
+
+    cat = input("Comma-separated expense categories, skippable :: ")
+    if cat:
+        cat = cat.split(",")
+        cat = "".join([f"&cat={t}" for t in cat])
+
+    url_params = start + end + types + cat
+    # Remove possible starting &
+    if url_params:
+        if url_params[0] == "&":
+            url_params = url_params[1:]
+
+    return "?" + url_params
+
+
+def query():
+    """Query the DB for expenses matching filters.
+
+    Obtains query parameters from the user.
+    """
+    qparams = get_query_parameters()
+    print(qparams)
+    response = requests.get(server + "/query/" + qparams)
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def summarize():
+    """Query the DB for expenses matching filters.
+
+    Obtains query parameters from the user.
+    """
+    qparams = get_query_parameters()
+    response = requests.get(server + "/summarize/" + qparams)
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def load(csvfile: str):
+    """Append the contents of a CSV file to the database.
+
+    Parameters
+    -----------------------
+    csvfile : str
+        Path of the CSV file.
+    """
+    response = requests.post(server + "/load/?csvfile=" + csvfile)
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def save(csvfile: str):
+    """Save the contents of the database to a CSV file.
+
+    Parameters
+    -----------------------
+    csvfile : str
+        Path of the CSV file.
+    """
+    response = requests.get(server + "/save/?csvfile=" + csvfile)
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def update(ID: int, data: ExpenseUpdate):
+    """Update an existing expense, selected by ID.
+
+    Parameters
+    -----------------------
+    ID: int
+        ID of the expense to update.
+    data: ExpenseUpdate
+        Object containing the new expense fields.
+    """
+    response = requests.patch(
+        server + f"/update/?ID={ID}", json=jsonable_encoder(data)
     )
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def remove(IDs: list[int]):
+    """Remove expenses selected by ID.
+
+    Parameters
+    -----------------------
+    ID: list[int]
+        IDs of the expenses to remove.
+    """
+    id_str = "".join([f"&ids={i}" for i in IDs])
+    id_str = id_str[1:]
+
+    response = requests.delete(server + f"/remove/?{id_str}")
+
+    pprint(response.status_code)
+    pprint(response.json())
+
+
+def erase():
+    """Remove all expenses."""
+    response = requests.delete(server + "/erase")
 
     pprint(response.status_code)
     pprint(response.json())
