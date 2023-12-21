@@ -4,6 +4,22 @@ Functions
 -----------------------
 root()
     Connect to the main page.
+add()
+    Add an Expense, querying the user for data.
+query()
+    Query the DB for expenses matching filters.
+summarize()
+    Query the DB for expenses matching filters.
+load()
+    Append the contents of a CSV file to the database.
+save()
+    Save the contents of the database to a CSV file.
+update()
+    Update an existing expense, selected by ID.
+remove()
+    Remove expenses selected by ID.
+erase()
+    Remove all expenses and reset ID field.
 """
 
 # Copyright (c) 2023 Adriano Angelone
@@ -79,7 +95,7 @@ def add():
     console.print(response.json())
 
 
-def get_query_parameters() -> str:
+def _get_query_parameters() -> str:
     """Query the user for QueryParameters content and returns a query string.
 
     Parameters
@@ -122,7 +138,7 @@ def query():
 
     Obtains query parameters from the user.
     """
-    qparams = get_query_parameters()
+    qparams = _get_query_parameters()
     response = requests.get(server + "/query/" + qparams)
 
     console.print(response.status_code)
@@ -154,7 +170,7 @@ def summarize():
 
     Obtains query parameters from the user.
     """
-    qparams = get_query_parameters()
+    qparams = _get_query_parameters()
     response = requests.get(server + "/summarize/" + qparams)
 
     console.print(response.status_code)
@@ -238,7 +254,7 @@ def remove(IDs: list[int]):
 
 
 def erase():
-    """Remove all expenses."""
+    """Remove all expenses and reset ID field."""
     response = requests.delete(server + "/erase")
 
     console.print(response.status_code)
