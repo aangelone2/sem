@@ -29,36 +29,38 @@ root()
 # SOFTWARE.
 
 
-import functools
-import pprint
-
 from fastapi.encoders import jsonable_encoder
 
 import requests
+from rich.console import Console
+from rich.table import Table
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseUpdate
 
 
 server = "http://127.0.0.1:8000"
-pprint = functools.partial(pprint.pprint, indent=1)
+
+console = Console()
+# Emphasis formatting
+em = "[bold green]"
 
 
 def root():
     """Connect to the main page."""
     response = requests.get(server + "/")
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def add():
     """Add an Expense, querying the user for data."""
-    date = input("Expense date (YYYY-MM-DD) :: ")
-    typ = input("Expense type :: ")
-    category = input("Expense category, skippable :: ")
-    amount = input("Expense amount :: ")
-    description = input("Expense description :: ")
+    date = console.input(f"{em}Date[/] (YYYY-MM-DD)   :: ")
+    typ = console.input(f"{em}Type[/]                :: ")
+    category = console.input(f"{em}Category[/] (optional) :: ")
+    amount = console.input(f"{em}Amount[/]              :: ")
+    description = console.input(f"{em}Description[/]         :: ")
 
     response = requests.post(
         server + "/add",
@@ -73,8 +75,8 @@ def add():
         ),
     )
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def get_query_parameters() -> str:
@@ -90,18 +92,18 @@ def get_query_parameters() -> str:
     str
         The prepared query parameter string.
     """
-    start = input("Query start date (YYYY-MM-DD), skippable :: ")
+    start = console.input(f"{em}Start date[/] (YYYY-MM-DD, optional)      :: ")
     start = f"start={start}" if start else ""
 
-    end = input("Query end date (YYYY-MM-DD), skippable :: ")
+    end = console.input(f"{em}End date[/] (YYYY-MM-DD, optional)        :: ")
     end = f"end={end}" if end else ""
 
-    types = input("Comma-separated expense types, skippable :: ")
+    types = console.input(f"{em}Types[/] (comma-separated, optional)      :: ")
     if types:
         types = types.split(",")
         types = "".join([f"&types={t}" for t in types])
 
-    cat = input("Comma-separated expense categories, skippable :: ")
+    cat = console.input(f"{em}Categories[/] (comma-separated, optional) :: ")
     if cat:
         cat = cat.split(",")
         cat = "".join([f"&cat={t}" for t in cat])
@@ -121,11 +123,30 @@ def query():
     Obtains query parameters from the user.
     """
     qparams = get_query_parameters()
-    print(qparams)
     response = requests.get(server + "/query/" + qparams)
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+
+    table = Table()
+    table.add_column(f"{em}ID[/]")
+    table.add_column(f"{em}Date[/]")
+    table.add_column(f"{em}Type[/]")
+    table.add_column(f"{em}Category[/]")
+    table.add_column(f"{em}Amount[/]")
+    table.add_column(f"{em}Description[/]")
+
+    # List of expenses (as dictionaries)
+    for exp in response.json():
+        table.add_row(
+            str(exp["id"]),
+            exp["date"],
+            exp["type"],
+            exp["category"],
+            str(exp["amount"]),
+            exp["description"],
+        )
+
+    console.print(table)
 
 
 def summarize():
@@ -136,8 +157,21 @@ def summarize():
     qparams = get_query_parameters()
     response = requests.get(server + "/summarize/" + qparams)
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+
+    # Dictionary of dictionaries (categories -> types -> sums)
+    for cat in response.json():
+        console.print(f"{em}Category :: {cat}")
+
+        table = Table()
+        table.add_column(f"{em}Type[/]")
+        table.add_column(f"{em}Total[/]")
+
+        for tp in response.json()[cat]:
+            table.add_row(tp, str(response.json()[cat][tp]))
+
+        console.print(table)
+        console.print("")
 
 
 def load(csvfile: str):
@@ -150,8 +184,8 @@ def load(csvfile: str):
     """
     response = requests.post(server + "/load/?csvfile=" + csvfile)
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def save(csvfile: str):
@@ -164,8 +198,8 @@ def save(csvfile: str):
     """
     response = requests.get(server + "/save/?csvfile=" + csvfile)
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def update(ID: int, data: ExpenseUpdate):
@@ -182,8 +216,8 @@ def update(ID: int, data: ExpenseUpdate):
         server + f"/update/?ID={ID}", json=jsonable_encoder(data)
     )
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def remove(IDs: list[int]):
@@ -199,13 +233,13 @@ def remove(IDs: list[int]):
 
     response = requests.delete(server + f"/remove/?{id_str}")
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
 
 
 def erase():
     """Remove all expenses."""
     response = requests.delete(server + "/erase")
 
-    pprint(response.status_code)
-    pprint(response.json())
+    console.print(response.status_code)
+    console.print(response.json())
