@@ -9,8 +9,6 @@ CRUDHandler
 
 Functions
 -----------------------
-str2date()
-    Convert string in YYYY-MM-DD format to date.
 CRUDHandlerContext()
     Manage context for CRUDHandler.
 """
@@ -38,7 +36,6 @@ CRUDHandlerContext()
 # SOFTWARE.
 
 
-from datetime import datetime
 import csv
 from contextlib import contextmanager
 
@@ -54,22 +51,6 @@ from modules.session import init_session
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseUpdate
 from modules.schemas import QueryParameters
-
-
-def str2date(arg: str) -> datetime.date:
-    """Convert string in YYYY-MM-DD format to date.
-
-    Parameters
-    -----------------------
-    arg : str
-        The string to convert.
-
-    Returns
-    -----------------------
-    datetime.date
-        The converted date.
-    """
-    return datetime.strptime(arg, "%Y-%m-%d").date()
 
 
 class CRUDHandlerError(Exception):
@@ -306,7 +287,7 @@ class CRUDHandler:
 
                     try:
                         exp = ExpenseAdd(
-                            date=str2date(row[0]),
+                            date=row[0],
                             type=row[1],
                             category=row[2],
                             amount=row[3],

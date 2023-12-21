@@ -9,13 +9,13 @@ from fastapi.encoders import jsonable_encoder
 import pytest
 
 from modules.schemas import ExpenseRead
-from modules.crud_handler import str2date
 from modules.crud_handler import CRUDHandler
 from modules.crud_handler import CRUDHandlerContext
 from modules.api import app
 from modules.api import get_ch
 
 from tests.common import TEST_DB_NAME
+from tests.common import str2date
 from tests.common import expenses
 from tests.common import CRUDHandlerTestContext
 
@@ -278,7 +278,7 @@ def test_load_api(test_client):
         expected = [
             ExpenseRead(
                 id=9,
-                date=str2date("2021-12-09"),
+                date="2021-12-09",
                 type="T",
                 category="",
                 amount=-15.0,
@@ -286,7 +286,7 @@ def test_load_api(test_client):
             ),
             ExpenseRead(
                 id=8,
-                date=str2date("2022-12-10"),
+                date="2022-12-10",
                 type="L",
                 category="",
                 amount=-14.0,
@@ -297,7 +297,7 @@ def test_load_api(test_client):
             expenses[2],
             ExpenseRead(
                 id=6,
-                date=str2date("2023-12-12"),
+                date="2023-12-12",
                 type="G",
                 category="",
                 amount=-12.0,
@@ -307,7 +307,7 @@ def test_load_api(test_client):
             expenses[0],
             ExpenseRead(
                 id=7,
-                date=str2date("2026-12-11"),
+                date="2026-12-11",
                 type="K",
                 category="",
                 amount=-13.0,

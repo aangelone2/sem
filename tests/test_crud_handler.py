@@ -11,16 +11,15 @@ from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseRead
 from modules.schemas import ExpenseUpdate
 from modules.schemas import QueryParameters
-from modules.crud_handler import str2date
 from modules.crud_handler import CRUDHandlerError
 
 from tests.common import expenses
+from tests.common import str2date
 from tests.common import CRUDHandlerTestContext
 
 
 def test_global_query():
     """Tests no-parameter query."""
-
     with CRUDHandlerTestContext() as ch:
         # retrieve all expenses
         res = ch.query(QueryParameters())
@@ -37,13 +36,12 @@ def test_global_query():
 
 def test_date_query():
     """Tests date-filtered query."""
-
     with CRUDHandlerTestContext() as ch:
         # only the 2 most recent expenses
         res = ch.query(
             QueryParameters(
-                start=str2date("2023-12-05"),
-                end=str2date("2023-12-31"),
+                start="2023-12-05",
+                end="2023-12-31",
             )
         )
         expected = [
@@ -56,7 +54,7 @@ def test_date_query():
         # use only start date
         res = ch.query(
             QueryParameters(
-                start=str2date("2023-12-04"),
+                start="2023-12-04",
             )
         )
         expected = [
@@ -70,7 +68,7 @@ def test_date_query():
         # use only end date
         res = ch.query(
             QueryParameters(
-                end=str2date("2023-12-04"),
+                end="2023-12-04",
             )
         )
         expected = [
@@ -84,13 +82,12 @@ def test_date_query():
 
 def test_date_type_query():
     """Tests date- and type-filtered query."""
-
     with CRUDHandlerTestContext() as ch:
         # only the 2nd and 3rd most recent expenses, filtered by type and date
         res = ch.query(
             QueryParameters(
-                start=str2date("2023-12-01"),
-                end=str2date("2023-12-31"),
+                start="2023-12-01",
+                end="2023-12-31",
                 types=["C", "M"],
             )
         )
@@ -104,13 +101,12 @@ def test_date_type_query():
 
 def test_date_type_cat_query():
     """Tests date-, type-, and category-filtered query."""
-
     with CRUDHandlerTestContext() as ch:
         # only the 3rd most recent expense, filtered by type, category and date
         res = ch.query(
             QueryParameters(
-                start=str2date("2023-12-01"),
-                end=str2date("2023-12-31"),
+                start="2023-12-01",
+                end="2023-12-31",
                 types=["C", "M"],
                 categories=["trial", "nonexistent"],
             )
@@ -124,11 +120,10 @@ def test_date_type_cat_query():
 
 def test_add():
     """Tests adding function."""
-
     with CRUDHandlerTestContext() as ch:
         # Auto-assign ID, default category, after only oldest expense
         new_exp = ExpenseAdd(
-            date=str2date("2023-11-18"),
+            date="2023-11-18",
             type="A",
             amount=-9.00,
             description="test expense",
@@ -155,7 +150,7 @@ def test_summarize():
     with CRUDHandlerTestContext() as ch:
         ch.add(
             ExpenseAdd(
-                date=str2date("2023-11-28"),
+                date="2023-11-28",
                 type="R",
                 category="gen",
                 amount=+1.00,
@@ -164,7 +159,7 @@ def test_summarize():
         )
         ch.add(
             ExpenseAdd(
-                date=str2date("2023-11-27"),
+                date="2023-11-27",
                 type="Q",
                 category="test",
                 amount=+1.00,
@@ -174,7 +169,7 @@ def test_summarize():
         ch.add(
             # Default category
             ExpenseAdd(
-                date=str2date("2023-11-26"),
+                date="2023-11-26",
                 type="M",
                 amount=+1.00,
                 description="test-4",
@@ -182,7 +177,7 @@ def test_summarize():
         )
         ch.add(
             ExpenseAdd(
-                date=str2date("2023-12-06"),
+                date="2023-12-06",
                 type="R",
                 category="gen",
                 amount=+2.00,
@@ -203,8 +198,8 @@ def test_summarize():
         # Type, category, and date filtering
         res = ch.summarize(
             QueryParameters(
-                start=str2date("2023-12-05"),
-                end=str2date("2023-12-31"),
+                start="2023-12-05",
+                end="2023-12-31",
                 types=["R", "C"],
                 categories=["gen", "test"],
             )
@@ -217,7 +212,6 @@ def test_summarize():
 
 def test_load():
     """Tests loading function."""
-
     with CRUDHandlerTestContext() as ch:
         # Auto-assign ID, default category, after only oldest expense
         ch.load("resources/test-1.csv")
@@ -227,7 +221,7 @@ def test_load():
         expected = [
             ExpenseRead(
                 id=9,
-                date=str2date("2021-12-09"),
+                date="2021-12-09",
                 type="T",
                 category="",
                 amount=-15.0,
@@ -235,7 +229,7 @@ def test_load():
             ),
             ExpenseRead(
                 id=8,
-                date=str2date("2022-12-10"),
+                date="2022-12-10",
                 type="L",
                 category="",
                 amount=-14.0,
@@ -246,7 +240,7 @@ def test_load():
             expenses[2],
             ExpenseRead(
                 id=6,
-                date=str2date("2023-12-12"),
+                date="2023-12-12",
                 type="G",
                 category="",
                 amount=-12.0,
@@ -256,7 +250,7 @@ def test_load():
             expenses[0],
             ExpenseRead(
                 id=7,
-                date=str2date("2026-12-11"),
+                date="2026-12-11",
                 type="K",
                 category="",
                 amount=-13.0,
@@ -304,7 +298,6 @@ def test_load():
 
 def test_save(tmpdir):
     """Tests saving function."""
-
     with CRUDHandlerTestContext() as ch:
         # Temporary file
         file = tmpdir.join("test-2.csv")
@@ -322,9 +315,8 @@ def test_save(tmpdir):
 
 def test_update():
     """Tests updating function."""
-
     with CRUDHandlerTestContext() as ch:
-        ch.update(3, ExpenseUpdate(date=str2date("2028-05-01")))
+        ch.update(3, ExpenseUpdate(date="2028-05-01"))
         ch.update(1, ExpenseUpdate(type="P", amount=+10.0))
 
         # retrieve all expenses
@@ -359,7 +351,6 @@ def test_update():
 
 def test_remove():
     """Tests removal function."""
-
     with CRUDHandlerTestContext() as ch:
         # Selective removal
         ch.remove([3, 1])
