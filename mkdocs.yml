@@ -11,6 +11,7 @@ plugins:
 nav:
   - Homepage: index.md
   - Reference:
-    - crud_handler: reference/crud_handler.md
     - models: reference/models.md
     - schemas: reference/schemas.md
+    - crud_handler: reference/crud_handler.md
+    - session: reference/session.md

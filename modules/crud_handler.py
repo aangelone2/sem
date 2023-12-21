@@ -84,7 +84,7 @@ class CRUDHandler:
     session : sqlalchemy.orm.Session
         Session connected to the specified DB.
 
-    Public methods
+    Methods
     -----------------------
     __init__()
         Initialize class instance.

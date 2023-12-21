@@ -53,7 +53,7 @@ class ExpenseBase(BaseModel):
     type : str
         Low-level group of the expense.
     category : Optional[str]
-        High-level group of the expense. Default is `None` -> "".
+        High-level group of the expense. Default is ''.
     amount : float
         Amount of the expense.
     description : str
