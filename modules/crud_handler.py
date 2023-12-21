@@ -236,8 +236,9 @@ class CRUDHandler:
         if exp is None:
             raise CRUDHandlerError(f"ID {ID} not found")
 
-        for k, v in data.model_dump(exclude_unset=True).items():
-            setattr(exp, k, v)
+        for k, v in data.model_dump().items():
+            if v is not None:
+                setattr(exp, k, v)
         self.session.commit()
 
     def remove(self, ids: list[int]):
