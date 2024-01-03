@@ -156,7 +156,7 @@ class CRUDHandler:
         return self.session.scalars(
             select(Expense)
             .where(self._build_query_conditions(params))
-            .order_by(Expense.date)
+            .order_by(Expense.date, Expense.id)
         ).all()
 
     def summarize(

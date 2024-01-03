@@ -146,16 +146,14 @@ def query_parameters(
             description="Included expense types. `None` does not filter.",
         ),
     ] = None,
-    categories: Annotated[
+    cat: Annotated[
         Optional[list[str]],
         Query(
             description="Included expense categories. `None` does not filter.",
         ),
     ] = None,
 ) -> QueryParameters:
-    return QueryParameters(
-        start=start, end=end, types=types, categories=categories
-    )
+    return QueryParameters(start=start, end=end, types=types, categories=cat)
 
 
 @app.get(

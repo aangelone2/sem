@@ -110,10 +110,10 @@ def _get_query_parameters() -> str:
         The prepared query parameter string.
     """
     start = console.input(f"{em}Start date[/] (YYYY-MM-DD, optional)      :: ")
-    start = f"start={start}" if start else ""
+    start = f"&start={start}" if start else ""
 
     end = console.input(f"{em}End date[/] (YYYY-MM-DD, optional)        :: ")
-    end = f"end={end}" if end else ""
+    end = f"&end={end}" if end else ""
 
     types = console.input(f"{em}Types[/] (comma-separated, optional)      :: ")
     if types:
