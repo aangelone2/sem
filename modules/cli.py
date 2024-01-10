@@ -45,22 +45,35 @@ erase()
 # SOFTWARE.
 
 
+import os
+
 from fastapi.encoders import jsonable_encoder
 
 import requests
 
+# `rich` works for tables and general printing
 from rich.console import Console
 from rich.table import Table
+
+# `colorama` works for input() in docker
+from colorama import Fore
+from colorama import Style
 
 from modules.schemas import ExpenseAdd
 from modules.schemas import ExpenseUpdate
 
 
-server = "http://127.0.0.1:8000"
-
 console = Console()
-# Emphasis formatting
+# Emphasis formatting - rich
 em = "[bold green]"
+# Emphasis formatting - colorama
+EM = Fore.GREEN + Style.BRIGHT
+NEM = Style.RESET_ALL
+
+if os.environ.get("SEM_DOCKER") == "1":
+    server = "http://sem-server:8000"
+else:
+    server = "http://127.0.0.1:8000"
 
 
 def root():
@@ -73,11 +86,11 @@ def root():
 
 def add():
     """Add an Expense, querying the user for data."""
-    date = console.input(f"{em}Date[/] (YYYY-MM-DD)   :: ")
-    typ = console.input(f"{em}Type[/]                :: ")
-    category = console.input(f"{em}Category[/] (optional) :: ")
-    amount = console.input(f"{em}Amount[/]              :: ")
-    description = console.input(f"{em}Description[/]         :: ")
+    date = input(f"{EM}Date{NEM} (YYYY-MM-DD)   :: ")
+    typ = input(f"{EM}Type{NEM}                :: ")
+    category = input(f"{EM}Category{NEM} (optional) :: ")
+    amount = input(f"{EM}Amount{NEM}              :: ")
+    description = input(f"{EM}Description{NEM}         :: ")
 
     response = requests.post(
         server + "/add",
@@ -109,18 +122,18 @@ def _get_query_parameters() -> str:
     str
         The prepared query parameter string.
     """
-    start = console.input(f"{em}Start date[/] (YYYY-MM-DD, optional)      :: ")
+    start = input(f"{EM}Start date{NEM} (YYYY-MM-DD, optional)      :: ")
     start = f"&start={start}" if start else ""
 
-    end = console.input(f"{em}End date[/] (YYYY-MM-DD, optional)        :: ")
+    end = input(f"{EM}End date{NEM} (YYYY-MM-DD, optional)        :: ")
     end = f"&end={end}" if end else ""
 
-    types = console.input(f"{em}Types[/] (comma-separated, optional)      :: ")
+    types = input(f"{EM}Types{NEM} (comma-separated, optional)      :: ")
     if types:
         types = types.split(",")
         types = "".join([f"&types={t}" for t in types])
 
-    cat = console.input(f"{em}Categories[/] (comma-separated, optional) :: ")
+    cat = input(f"{EM}Categories{NEM} (comma-separated, optional) :: ")
     if cat:
         cat = cat.split(",")
         cat = "".join([f"&cat={t}" for t in cat])
@@ -178,7 +191,7 @@ def summarize():
 
     # Dictionary of dictionaries (categories -> types -> sums)
     for cat in response.json():
-        console.print(f"{em}Category :: {cat}")
+        console.print(f"{em}Category[/] :: {cat}")
 
         table = Table()
         table.add_column(f"{em}Type[/]")

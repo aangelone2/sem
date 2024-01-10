@@ -28,6 +28,7 @@ init_session()
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
+import os
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
@@ -51,10 +52,17 @@ def init_session(database: str) -> Session:
         The initialized Session.
     """
     DRIVER = "postgresql+psycopg"
-    USER = "postgres"
-    PASSWORD = ""
-    HOST = "localhost"
-    PORT = "5432"
+
+    if os.environ.get("SEM_DOCKER") == "1":
+        USER = "sem"
+        PASSWORD = "sem"
+        HOST = "sem-db"
+        PORT = "5433"
+    else:
+        USER = "postgres"
+        PASSWORD = ""
+        HOST = "localhost"
+        PORT = "5432"
 
     DB = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{database}"
     if not database_exists(DB):

@@ -1,0 +1,43 @@
+version: "3"
+
+services:
+  sem-db:
+    container_name: sem-db
+    image: postgres:15.4-alpine
+    restart: always
+    ports:
+      - 5433:5433
+    command: -p 5433
+    volumes:
+      - ./sem-db-data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: sem
+      POSTGRES_PASSWORD: sem
+        #      POSTGRES_DB: sem
+      # required for the check below - otherwise postgresql
+      # will use undefined 'root' user and raise errors
+      PGUSER: sem
+    healthcheck:
+      # postgresql starts up, stops, and then restarts
+      # => errors if the server connects before the stop
+      # this checks if the system is ready
+      test: [ "CMD-SHELL", "pg_isready -p 5433" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    container_name: sem-server
+    depends_on:
+      sem-db:
+        condition: service_healthy
+    image: sem-server
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+    ports:
+      - 8000:8000
+      - 8001:8001
+    environment:
+      - SEM_DOCKER=1
+      - SEM_TEST
