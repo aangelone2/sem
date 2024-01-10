@@ -137,8 +137,8 @@ def test_date_type_cat_query_api(test_client):
             "&end=2023-12-31"
             "&types=C"
             "&types=M"
-            "&categories=trial"
-            "&categories=nonexistent"
+            "&cat=trial"
+            "&cat=nonexistent"
         )
 
         expected = [
@@ -249,8 +249,8 @@ def test_summarize_api(test_client):
             "&end=2023-12-31"
             "&types=R"
             "&types=C"
-            "&categories=gen"
-            "&categories=test"
+            "&cat=gen"
+            "&cat=test"
         )
         # fmt: on
         assert response.status_code == 200

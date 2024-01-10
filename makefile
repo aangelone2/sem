@@ -16,7 +16,7 @@ run:
 	poetry run python3 -m modules.main
 
 test:
-	poetry run python3 -m pytest -x -s -v .
+	poetry run python3 -m pytest --ignore=sem-db-data/ -x -s -v .
 
 requirements:
 	poetry run pip freeze | grep -v '^-e' > docker/requirements.txt
