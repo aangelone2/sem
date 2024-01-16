@@ -10,7 +10,7 @@ WORKDIR /app
 RUN apt-get update
 RUN apt-get -y install gcc postgresql postgresql-contrib libpq-dev
 
-# Copying separately lockfile,
+# preparing separately requirement file,
 # installation will be performed iif packages change
 COPY docker/requirements.txt .
 

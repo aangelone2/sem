@@ -3,11 +3,14 @@
 docker-cli:
 	docker compose run server python -im modules.cli
 
-docker:
+docker-run:
 	docker compose up --build
 
 docker-test:
-	SEM_TEST=1 docker compose up --build
+	SEM_LAUNCH="test" docker compose up --build
+
+docker-docs:
+	SEM_LAUNCH="docs" docker compose up --build
 
 cli:
 	poetry run python3 -im modules.cli

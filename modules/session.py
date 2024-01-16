@@ -57,12 +57,12 @@ def init_session(database: str) -> Session:
         USER = "sem"
         PASSWORD = "sem"
         HOST = "sem-db"
-        PORT = "5433"
     else:
         USER = "postgres"
         PASSWORD = ""
         HOST = "localhost"
-        PORT = "5432"
+
+    PORT = "5432"
 
     DB = f"{DRIVER}://{USER}:{PASSWORD}@{HOST}:{PORT}/{database}"
     if not database_exists(DB):

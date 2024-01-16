@@ -1,10 +1,12 @@
 #!/bin/bash
 
-if [[ $SEM_TEST == 1 ]]
+if [[ $SEM_LAUNCH == "test" ]]
 then
-  python -m modules.main &
-  sleep 2
   python -m pytest -x -s -v .
+elif [[ $SEM_LAUNCH == "docs" ]]
+then
+  mkdocs build
+  mkdocs serve
 else
   python -m modules.main
 fi
