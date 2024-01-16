@@ -6,9 +6,6 @@ docker-cli:
 docker-run:
 	docker compose up --build
 
-docker-test:
-	SEM_LAUNCH="test" docker compose up --build
-
 docker-docs:
 	SEM_LAUNCH="docs" docker compose up --build
 
