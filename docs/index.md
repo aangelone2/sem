@@ -33,16 +33,18 @@ dependencies.
 The server can be executed running the commands
 
 ```bash
-$ poetry run python3 -m modules.main
+$ poetry --directory <project directory> run sem
 ```
 
-or
+(`--directory ...` is optional if within the project
+directory already) or
 
 ```bash
 $ make run
 ```
 
-Its interface can be accessed at the URL
+from within the project directory. The server interface
+can be accessed at the URL
 
 <http://127.0.0.1:8000>
 
@@ -56,10 +58,11 @@ Once an instance of the server is running, a
 command-line interface can be executed as
 
 ```bash
-$ poetry run python3 -im modules.cli
+$ poetry --directory <project directory> run python3 -im modules.cli
 ```
 
-or
+(`--directory ...` is optional if within the project
+directory already) or
 
 ```bash
 $ make cli

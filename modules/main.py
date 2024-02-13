@@ -26,5 +26,13 @@
 import uvicorn
 
 
-if __name__ == "__main__":
+__version__ = "1.0.0"
+
+
+def main():
+    """Execute main entrypoint."""
     uvicorn.run("modules.api:app", host="0.0.0.0", reload=True)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "sem"
-version = "0.1.0"
+version = "1.0.0"
 description = "Simple expense manager"
 authors = ["aangelone2 <adriano.angelone.work@gmail.com>"]
 license = "GPL v3"
@@ -24,6 +24,9 @@ httpx = "^0.25.1"
 mkdocs = "^1.5.3"
 mkdocstrings = {extras = ["python"], version = "^0.24"}
 mkdocs-material = "^9.4.11"
+
+[tool.poetry.scripts]
+sem = "modules.main:main"
 
 [build-system]
 requires = ["poetry-core"]

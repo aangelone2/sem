@@ -13,7 +13,7 @@ cli:
 	poetry run python3 -im modules.cli
 
 run:
-	poetry run python3 -m modules.main
+	poetry run sem
 
 test:
 	poetry run python3 -m pytest --ignore=sem-db-data/ -x -s -v .
